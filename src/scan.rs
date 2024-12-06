@@ -46,6 +46,14 @@ impl Scanner {
                         (Equal, "=", None)
                     }
                 }
+                '!' => {
+                    if let Some(&'=') = iter.peek() {
+                        iter.next();
+                        (BangEqual, "!=", None)
+                    } else {
+                        (Bang, "!", None)
+                    }
+                }
                 '\n' => {
                     line += 1;
                     continue;
