@@ -54,6 +54,22 @@ impl Scanner {
                         (Bang, "!", None)
                     }
                 }
+                '>' => {
+                    if let Some(&'=') = iter.peek() {
+                        iter.next();
+                        (GreaterEqual, ">=", None)
+                    } else {
+                        (Greater, ">", None)
+                    }
+                }
+                '<' => {
+                    if let Some(&'=') = iter.peek() {
+                        iter.next();
+                        (LessEqual, "<=", None)
+                    } else {
+                        (Less, "<", None)
+                    }
+                }
                 '\n' => {
                     line += 1;
                     continue;
