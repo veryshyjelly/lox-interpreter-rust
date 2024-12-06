@@ -21,10 +21,10 @@ impl Scanner {
     }
 
     pub fn scan(&mut self) {
-        let iter = self.src.iter().enumerate().peekable();
+        let mut iter = self.src.iter().peekable();
         let mut line = 1;
 
-        for (_, c) in iter {
+        while let Some(c) = iter.next() {
             use Literal::*;
             use TokenType::*;
             let (tp, eme, lrl) = match c {
@@ -38,6 +38,14 @@ impl Scanner {
                 '+' => (Plus, "+", None),
                 ';' => (Semicolon, ";", None),
                 '*' => (Star, "*", None),
+                '=' => {
+                    if let Some(&'=') = iter.peek() {
+                        iter.next();
+                        (EqualEqual, "==", None)
+                    } else {
+                        (Equal, "=", None)
+                    }
+                }
                 '\n' => {
                     line += 1;
                     continue;
