@@ -3,6 +3,8 @@ use std::fmt::Display;
 pub enum TokenType {
     LeftParen,
     RightParen,
+    LeftBrace,
+    RightBrace,
     Eof,
 }
 
@@ -12,6 +14,8 @@ impl Display for TokenType {
         match self {
             LeftParen => write!(f, "LEFT_PAREN"),
             RightParen => write!(f, "RIGHT_PAREN"),
+            LeftBrace => write!(f, "LEFT_BRACE"),
+            RightBrace => write!(f, "RIGHT_BRACE"),
             Eof => write!(f, "EOF"),
         }
     }
