@@ -1,6 +1,7 @@
 use std::env;
 use std::fs;
 use std::io::{self, Write};
+use std::process::exit;
 
 use scan::Scanner;
 
@@ -27,8 +28,19 @@ fn main() -> std::io::Result<()> {
             if !file_contents.is_empty() {
                 let mut scanner = Scanner::new(file_contents);
                 scanner.scan();
+                for ele in scanner.errors.iter() {
+                    writeln!(
+                        io::stderr(),
+                        "[line {}] Error: Unexpected character: {}",
+                        ele.line,
+                        ele.tok
+                    )?;
+                }
                 for ele in scanner.tokens.iter() {
                     writeln!(io::stdout(), "{ele}")?;
+                }
+                if !scanner.errors.is_empty() {
+                    exit(65);
                 }
                 Ok(())
             } else {
