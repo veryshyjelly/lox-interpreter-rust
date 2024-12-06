@@ -17,13 +17,22 @@ impl Scanner {
         let iter = self.src.iter().enumerate().peekable();
 
         for (_, c) in iter {
-            let token = match c {
-                '(' => Token::new(TokenType::LeftParen, "(".into(), Literal::None),
-                ')' => Token::new(TokenType::RightParen, ")".into(), Literal::None),
-                '{' => Token::new(TokenType::LeftBrace, "{".into(), Literal::None),
-                '}' => Token::new(TokenType::RightBrace, "}".into(), Literal::None),
+            use Literal::*;
+            use TokenType::*;
+            let (tp, eme, lrl) = match c {
+                '(' => (LeftParen, "(", None),
+                ')' => (RightParen, ")", None),
+                '{' => (LeftBrace, "{", None),
+                '}' => (RightBrace, "}", None),
+                ',' => (Comma, ",", None),
+                '.' => (Dot, ".", None),
+                '-' => (Minus, "-", None),
+                '+' => (Plus, "+", None),
+                ';' => (Semicolon, ";", None),
+                '*' => (Star, "*", None),
                 _ => continue,
             };
+            let token = Token::new(tp, eme.into(), lrl);
             self.tokens.push(token);
         }
 

@@ -1,23 +1,100 @@
 use std::fmt::Display;
 
 pub enum TokenType {
+    // Single-character tokens
     LeftParen,
     RightParen,
     LeftBrace,
     RightBrace,
+    Comma,
+    Dot,
+    Minus,
+    Plus,
+    Semicolon,
+    Slash,
+    Star,
+
+    // One or two character tokens.
+    Bang,
+    BangEqual,
+    Equal,
+    EqualEqual,
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual,
+
+    // Literals
+    Identifier,
+    String,
+    Number,
+
+    // Keywords
+    And,
+    Class,
+    Else,
+    False,
+    Fun,
+    For,
+    If,
+    Nil,
+    Or,
+    Print,
+    Return,
+    Super,
+    This,
+    True,
+    Var,
+    While,
+
     Eof,
 }
 
 impl Display for TokenType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use TokenType::*;
-        match self {
-            LeftParen => write!(f, "LEFT_PAREN"),
-            RightParen => write!(f, "RIGHT_PAREN"),
-            LeftBrace => write!(f, "LEFT_BRACE"),
-            RightBrace => write!(f, "RIGHT_BRACE"),
-            Eof => write!(f, "EOF"),
-        }
+        let d = match self {
+            LeftParen => "LEFT_PAREN",
+            RightParen => "RIGHT_PAREN",
+            LeftBrace => "LEFT_BRACE",
+            RightBrace => "RIGHT_BRACE",
+            Comma => "COMMA",
+            Dot => "DOT",
+            Minus => "MINUS",
+            Plus => "PLUS",
+            Semicolon => "SEMICOLON",
+            Slash => "SLASH",
+            Star => "STAR",
+            Bang => "BANG",
+            BangEqual => "BANG_EQUAL",
+            Equal => "EQUAL",
+            EqualEqual => "EQUAL_EQUAL",
+            Greater => "GREATER",
+            GreaterEqual => "GREATER_EQUAL",
+            Less => "LESS",
+            LessEqual => "LESS_EQUAL",
+            Identifier => "IDENTIFIER",
+            String => "STRING",
+            Number => "NUMBER",
+            And => "AND",
+            Class => "CLASS",
+            Else => "ELSE",
+            False => "FALSE",
+            Fun => "FUN",
+            For => "FOR",
+            If => "IF",
+            Nil => "NIL",
+            Or => "OR",
+            Print => "PRINT",
+            Return => "RETURN",
+            Super => "SUPER",
+            This => "THIS",
+            True => "TRUE",
+            Var => "VAR",
+            While => "WHILE",
+            Eof => "EOF",
+        };
+        write!(f, "{}", d)
     }
 }
 
