@@ -70,17 +70,26 @@ impl Scanner {
                         (Less, "<", None)
                     }
                 }
+                '/' => {
+                    if let Some(&'/') = iter.peek() {
+                        iter.position(|&x| x == '\n');
+                        continue;
+                    } else {
+                        (Slash, "/", None)
+                    }
+                }
                 '\n' => {
                     line += 1;
                     continue;
                 }
-                c => {
+                '@' | '#' | '^' => {
                     self.errors.push(ErrToken {
-                        line: line,
+                        line,
                         tok: c.clone(),
                     });
                     continue;
                 }
+                _ => continue,
             };
             let token = Token::new(tp, eme.into(), lrl);
             self.tokens.push(token);
