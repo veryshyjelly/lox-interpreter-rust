@@ -19,6 +19,12 @@ impl Display for Equality {
     }
 }
 
+impl Display for ComparisionOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
+}
+
 impl Display for Comparision {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.term.fmt(f)?;
@@ -27,6 +33,12 @@ impl Display for Comparision {
             term.fmt(f)?;
         }
         Ok(())
+    }
+}
+
+impl Display for TermOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
     }
 }
 
@@ -41,6 +53,12 @@ impl Display for Term {
     }
 }
 
+impl Display for FactorOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
+}
+
 impl Display for Factor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.unary.fmt(f)?;
@@ -52,16 +70,21 @@ impl Display for Factor {
     }
 }
 
+impl Display for UnaryOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            UnaryOp::Minus => write!(f, "-"),
+            UnaryOp::Bang => write!(f, "!"),
+        }
+    }
+}
+
 impl Display for Unary {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Unary::Un(unary_op, unary) => {
-                unary_op.fmt(f)?;
-                unary.as_ref().fmt(f)?;
-            }
-            Unary::Pr(primary) => primary.fmt(f)?,
+            Unary::Un(unary_op, unary) => write!(f, "({} {})", unary_op, unary),
+            Unary::Pr(primary) => primary.fmt(f),
         }
-        Ok(())
     }
 }
 
