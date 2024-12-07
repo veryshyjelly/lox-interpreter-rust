@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+#[derive(Clone)]
 pub enum TokenType {
     // Single-character tokens
     LeftParen,
@@ -98,10 +99,14 @@ impl Display for TokenType {
     }
 }
 
+#[derive(Clone)]
 pub enum Literal {
     None,
     String(String),
     Number(f64),
+    True,
+    False,
+    Nil,
 }
 
 impl Display for Literal {
@@ -111,6 +116,9 @@ impl Display for Literal {
             None => write!(f, "null"),
             String(s) => write!(f, "{s}"),
             Number(n) => write!(f, "{}", format_float(n)),
+            True => write!(f, "true"),
+            False => write!(f, "false"),
+            Nil => write!(f, "nil"),
         }
     }
 }
@@ -125,10 +133,11 @@ fn format_float(value: &f64) -> String {
     }
 }
 
+#[derive(Clone)]
 pub struct Token {
-    token_type: TokenType,
-    lexeme: String,
-    literal: Literal,
+    pub token_type: TokenType,
+    pub lexeme: String,
+    pub literal: Literal,
 }
 
 impl Display for Token {
