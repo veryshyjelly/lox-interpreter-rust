@@ -82,14 +82,13 @@ impl Scanner {
                     line += 1;
                     continue;
                 }
-                '@' | '#' | '^' => {
+                _ => {
                     self.errors.push(ErrToken {
                         line,
                         tok: c.clone(),
                     });
                     continue;
                 }
-                _ => continue,
             };
             let token = Token::new(tp, eme.into(), lrl);
             self.tokens.push(token);
