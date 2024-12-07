@@ -167,9 +167,9 @@ impl Primary {
             TokenType::LeftParen => {
                 let (expr, rst) = Expression::parse(&src[1..])?;
                 if let TokenType::RightParen = rst[0].token_type {
-                    Err(src)
-                } else {
                     Ok((Primary::ParenExpr(Box::new(expr)), rst))
+                } else {
+                    Err(src)
                 }
             }
             _ => Err(src),

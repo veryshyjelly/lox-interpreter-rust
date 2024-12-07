@@ -73,7 +73,7 @@ impl Display for Primary {
             Primary::True => "true".into(),
             Primary::False => "false".into(),
             Primary::Nil => "nil".into(),
-            Primary::ParenExpr(expression) => format!("{expression}"),
+            Primary::ParenExpr(expression) => format!("(group {expression})"),
         };
         write!(f, "{v}")
     }
