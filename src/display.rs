@@ -107,7 +107,7 @@ impl Display for Unary {
 impl Display for Primary {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let v = match self {
-            Primary::Number(n) => format_float(n),
+            Primary::Number(n) => n.to_string(),
             Primary::String(s) => s.clone(),
             Primary::Boolean(v) => v.to_string(),
             Primary::Nil => "nil".into(),
