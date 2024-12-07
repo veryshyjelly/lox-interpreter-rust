@@ -13,11 +13,13 @@ impl<'a> Parser<'a> {
             exprs: vec![],
         }
     }
-    pub fn parse(&mut self) {
-        while let Ok((expr, rst)) = Expression::parse(&self.src) {
+    pub fn parse(&mut self) -> Result<(), &'a [Token]> {
+        while self.src[0].token_type != TokenType::Eof {
+            let (expr, rst) = Expression::parse(&self.src)?;
             self.exprs.push(expr);
             self.src = rst;
         }
+        Ok(())
     }
 }
 

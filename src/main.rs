@@ -44,12 +44,21 @@ fn main() -> std::io::Result<()> {
             Ok(())
         }
         "parse" => {
-            let mut parser = Parser::new(&scanner.tokens);
-            parser.parse();
-            // println!("{:?}", parser.exprs);
-            for expr in parser.exprs {
-                println!("{}", expr);
+            for ele in scanner.errors.iter() {
+                writeln!(io::stderr(), "[line {}] Error: {}", ele.line, ele.tok)?;
             }
+            if !scanner.errors.is_empty() {
+                exit(65);
+            }
+            let mut parser = Parser::new(&scanner.tokens);
+            if let Ok(()) = parser.parse() {
+                for expr in parser.exprs {
+                    println!("{}", expr);
+                }
+            } else {
+                exit(65);
+            }
+            // println!("{:?}", parser.exprs);
             Ok(())
         }
         _ => writeln!(io::stderr(), "Unknown command: {}", command),

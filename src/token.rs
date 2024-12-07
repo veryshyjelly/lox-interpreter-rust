@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TokenType {
     // Single-character tokens
     LeftParen,
@@ -127,6 +127,7 @@ fn format_float(value: &f64) -> String {
 
 #[derive(Clone, Debug)]
 pub struct Token {
+    pub line: usize,
     pub token_type: TokenType,
     pub lexeme: String,
     pub literal: Literal,
@@ -144,6 +145,7 @@ impl Token {
             token_type,
             lexeme,
             literal,
+            line: 0,
         }
     }
 }
