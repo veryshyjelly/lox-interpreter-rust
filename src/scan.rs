@@ -119,6 +119,13 @@ impl Scanner {
                             n.clone(),
                             Literal::Number(n.parse().unwrap()),
                         )
+                    } else if c.is_alphabetic() || *c == '_' {
+                        let mut res = vec![*c];
+                        while let Some(&c) = iter.next_if(|&&x| x.is_alphanumeric() || x == '_') {
+                            res.push(c);
+                        }
+                        let id: String = res.into_iter().collect();
+                        (TokenType::Identifier, id.clone(), Literal::None)
                     } else if c.is_whitespace() {
                         continue;
                     } else {
