@@ -131,10 +131,15 @@ impl UnaryOp {
                 Ok(Primary::Number(-n))
             }
             UnaryOp::Bang => {
-                let b = exp.get_bool().ok_or(RuntimeError {
-                    err: "Operand must be a boolean".into(),
-                })?;
-                Ok(Primary::Boolean(!b))
+                if let Some(b) = exp.get_bool() {
+                    Ok(Primary::Boolean(!b))
+                } else if exp == Primary::Nil {
+                    Ok(Primary::Boolean(true))
+                } else {
+                    Err(RuntimeError {
+                        err: "Operand must be a boolean".into(),
+                    })
+                }
             }
         }
     }
