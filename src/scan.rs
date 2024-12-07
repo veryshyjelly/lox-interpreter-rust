@@ -3,10 +3,10 @@ use crate::token::{Literal, Token, TokenType};
 pub struct Scanner {
     src: Vec<char>,
     pub tokens: Vec<Token>,
-    pub errors: Vec<ErrToken>,
+    pub errors: Vec<ScanError>,
 }
 
-pub struct ErrToken {
+pub struct ScanError {
     pub line: usize,
     pub tok: String,
 }
@@ -77,7 +77,7 @@ impl Scanner {
                     if Some(&&'"') == iter.peek() {
                         iter.next();
                     } else {
-                        self.errors.push(ErrToken {
+                        self.errors.push(ScanError {
                             line,
                             tok: "Unterminated string.".into(),
                         });
@@ -148,7 +148,7 @@ impl Scanner {
                     } else if c.is_whitespace() {
                         continue;
                     } else {
-                        self.errors.push(ErrToken {
+                        self.errors.push(ScanError {
                             line,
                             tok: format!("Unexpected character: {}", c),
                         });
@@ -156,11 +156,15 @@ impl Scanner {
                     }
                 }
             };
-            let token = Token::new(tp, eme, lrl);
+            let token = Token::new(tp, eme, lrl, line);
             self.tokens.push(token);
         }
 
-        self.tokens
-            .push(Token::new(TokenType::Eof, "".to_string(), Literal::None));
+        self.tokens.push(Token::new(
+            TokenType::Eof,
+            "".to_string(),
+            Literal::None,
+            line,
+        ));
     }
 }

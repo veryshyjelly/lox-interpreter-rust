@@ -140,12 +140,12 @@ impl Display for Token {
 }
 
 impl Token {
-    pub fn new(token_type: TokenType, lexeme: String, literal: Literal) -> Self {
+    pub fn new(token_type: TokenType, lexeme: String, literal: Literal, line: usize) -> Self {
         Self {
             token_type,
             lexeme,
             literal,
-            line: 0,
+            line,
         }
     }
 }

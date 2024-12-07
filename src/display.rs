@@ -109,8 +109,7 @@ impl Display for Primary {
         let v = match self {
             Primary::Number(n) => format_float(n),
             Primary::String(s) => s.clone(),
-            Primary::True => "true".into(),
-            Primary::False => "false".into(),
+            Primary::Boolean(v) => v.to_string(),
             Primary::Nil => "nil".into(),
             Primary::ParenExpr(expression) => format!("(group {expression})"),
         };

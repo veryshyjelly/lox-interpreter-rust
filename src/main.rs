@@ -8,6 +8,7 @@ use scan::Scanner;
 
 mod ast;
 mod display;
+mod evaluate;
 mod parse;
 mod scan;
 mod token;
@@ -27,40 +28,65 @@ fn main() -> std::io::Result<()> {
         String::new()
     });
 
-    let mut scanner = Scanner::new(file_contents);
-    scanner.scan();
-
     match command.as_str() {
         "tokenize" => {
-            for ele in scanner.errors.iter() {
-                writeln!(io::stderr(), "[line {}] Error: {}", ele.line, ele.tok)?;
-            }
-            for ele in scanner.tokens.iter() {
-                writeln!(io::stdout(), "{ele}")?;
-            }
-            if !scanner.errors.is_empty() {
-                exit(65);
-            }
-            Ok(())
+            tokenize(file_contents, true)?;
         }
         "parse" => {
-            for ele in scanner.errors.iter() {
-                writeln!(io::stderr(), "[line {}] Error: {}", ele.line, ele.tok)?;
-            }
-            if !scanner.errors.is_empty() {
-                exit(65);
-            }
-            let mut parser = Parser::new(&scanner.tokens);
-            if let Ok(()) = parser.parse() {
-                for expr in parser.exprs {
-                    println!("{}", expr);
-                }
-            } else {
-                exit(65);
-            }
-            // println!("{:?}", parser.exprs);
-            Ok(())
+            let scanner = tokenize(file_contents, false)?;
+            parse(&scanner, true)?;
         }
-        _ => writeln!(io::stderr(), "Unknown command: {}", command),
+        "evaluate" => {
+            let scanner = tokenize(file_contents, false)?;
+            let parser = parse(&scanner, false)?;
+            for expr in parser.exprs {
+                match expr.evaluate() {
+                    Ok(v) => {
+                        writeln!(io::stdout(), "{}", v)?;
+                    }
+                    Err(err) => writeln!(io::stderr(), "{}", err.err)?,
+                }
+            }
+        }
+        _ => {
+            writeln!(io::stderr(), "Unknown command: {}", command)?;
+        }
     }
+    Ok(())
+}
+
+fn tokenize(file_contents: String, debug: bool) -> std::io::Result<Scanner> {
+    let mut scanner = Scanner::new(file_contents);
+    scanner.scan();
+    for ele in scanner.errors.iter() {
+        writeln!(io::stderr(), "[line {}] Error: {}", ele.line, ele.tok)?;
+    }
+    if debug {
+        for ele in scanner.tokens.iter() {
+            writeln!(io::stdout(), "{ele}")?;
+        }
+    }
+    if !scanner.errors.is_empty() {
+        exit(65);
+    }
+    Ok(scanner)
+}
+
+fn parse<'a>(scanner: &'a Scanner, debug: bool) -> std::io::Result<Parser> {
+    let mut parser = Parser::new(&scanner.tokens);
+    if let Err(err) = parser.parse() {
+        writeln!(
+            io::stderr(),
+            "[line {}] Error at '{}': {}",
+            err.tok.line,
+            err.tok.lexeme,
+            err.err
+        )?;
+        exit(65);
+    } else if debug {
+        for expr in &parser.exprs {
+            println!("{}", expr);
+        }
+    }
+    Ok(parser)
 }
