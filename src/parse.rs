@@ -121,6 +121,7 @@ impl Factor {
         rest: Option<(FactorOp, Box<Factor>)>,
     ) -> Result<(Self, &'a [Token]), &'a [Token]> {
         let (unary, rem) = Unary::parse(src)?;
+        // println!("unary: {} \n rem: {:?}", unary, rem);
         if let Ok((op, rem)) = FactorOp::parse(rem) {
             let eq = Factor { unary, rest };
             Factor::parse(rem, Some((op, Box::new(eq))))
@@ -175,7 +176,7 @@ impl Primary {
             TokenType::LeftParen => {
                 let (expr, rst) = Expression::parse(&src[1..])?;
                 if let TokenType::RightParen = rst[0].token_type {
-                    Ok((Primary::ParenExpr(Box::new(expr)), rst))
+                    Ok((Primary::ParenExpr(Box::new(expr)), &rst[1..]))
                 } else {
                     Err(src)
                 }

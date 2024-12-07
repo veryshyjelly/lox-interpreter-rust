@@ -46,6 +46,7 @@ fn main() -> std::io::Result<()> {
         "parse" => {
             let mut parser = Parser::new(&scanner.tokens);
             parser.parse();
+            // println!("{:?}", parser.exprs);
             for expr in parser.exprs {
                 println!("{}", expr);
             }
