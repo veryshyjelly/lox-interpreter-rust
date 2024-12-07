@@ -73,6 +73,7 @@ impl Scanner {
                 '/' => {
                     if let Some(&'/') = iter.peek() {
                         iter.position(|&x| x == '\n');
+                        line += 1;
                         continue;
                     } else {
                         (Slash, "/", None)
