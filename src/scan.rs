@@ -8,7 +8,7 @@ pub struct Scanner {
 
 pub struct ErrToken {
     pub line: usize,
-    pub tok: char,
+    pub tok: String,
 }
 
 impl Scanner {
@@ -25,50 +25,68 @@ impl Scanner {
         let mut line = 1;
 
         while let Some(c) = iter.next() {
-            use Literal::*;
-            use TokenType::*;
             let (tp, eme, lrl) = match c {
-                '(' => (LeftParen, "(", None),
-                ')' => (RightParen, ")", None),
-                '{' => (LeftBrace, "{", None),
-                '}' => (RightBrace, "}", None),
-                ',' => (Comma, ",", None),
-                '.' => (Dot, ".", None),
-                '-' => (Minus, "-", None),
-                '+' => (Plus, "+", None),
-                ';' => (Semicolon, ";", None),
-                '*' => (Star, "*", None),
+                '(' => (TokenType::LeftParen, "(".into(), Literal::None),
+                ')' => (TokenType::RightParen, ")".into(), Literal::None),
+                '{' => (TokenType::LeftBrace, "{".into(), Literal::None),
+                '}' => (TokenType::RightBrace, "}".into(), Literal::None),
+                ',' => (TokenType::Comma, ",".into(), Literal::None),
+                '.' => (TokenType::Dot, ".".into(), Literal::None),
+                '-' => (TokenType::Minus, "-".into(), Literal::None),
+                '+' => (TokenType::Plus, "+".into(), Literal::None),
+                ';' => (TokenType::Semicolon, ";".into(), Literal::None),
+                '*' => (TokenType::Star, "*".into(), Literal::None),
                 '=' => {
                     if let Some(&'=') = iter.peek() {
                         iter.next();
-                        (EqualEqual, "==", None)
+                        (TokenType::EqualEqual, "==".into(), Literal::None)
                     } else {
-                        (Equal, "=", None)
+                        (TokenType::Equal, "=".into(), Literal::None)
                     }
                 }
                 '!' => {
                     if let Some(&'=') = iter.peek() {
                         iter.next();
-                        (BangEqual, "!=", None)
+                        (TokenType::BangEqual, "!=".into(), Literal::None)
                     } else {
-                        (Bang, "!", None)
+                        (TokenType::Bang, "!".into(), Literal::None)
                     }
                 }
                 '>' => {
                     if let Some(&'=') = iter.peek() {
                         iter.next();
-                        (GreaterEqual, ">=", None)
+                        (TokenType::GreaterEqual, ">=".into(), Literal::None)
                     } else {
-                        (Greater, ">", None)
+                        (TokenType::Greater, ">".into(), Literal::None)
                     }
                 }
                 '<' => {
                     if let Some(&'=') = iter.peek() {
                         iter.next();
-                        (LessEqual, "<=", None)
+                        (TokenType::LessEqual, "<=".into(), Literal::None)
                     } else {
-                        (Less, "<", None)
+                        (TokenType::Less, "<".into(), Literal::None)
                     }
+                }
+                '"' => {
+                    let mut res = vec![];
+                    while let Some(&c) = iter.next_if(|&&x| x != '"') {
+                        res.push(c);
+                    }
+
+                    if Some(&&'"') == iter.peek() {
+                        iter.next();
+                    } else {
+                        self.errors.push(ErrToken {
+                            line,
+                            tok: "Unterminated string.".into(),
+                        });
+                        continue;
+                    }
+
+                    let s: String = res.into_iter().collect();
+
+                    (TokenType::String, format!("\"{s}\""), Literal::String(s))
                 }
                 '/' => {
                     if let Some(&'/') = iter.peek() {
@@ -76,7 +94,7 @@ impl Scanner {
                         line += 1;
                         continue;
                     } else {
-                        (Slash, "/", None)
+                        (TokenType::Slash, "/".into(), Literal::None)
                     }
                 }
                 '\n' => {
@@ -87,13 +105,13 @@ impl Scanner {
                     if !c.is_whitespace() {
                         self.errors.push(ErrToken {
                             line,
-                            tok: c.clone(),
+                            tok: format!("Unexpected character: {}", c),
                         });
                     }
                     continue;
                 }
             };
-            let token = Token::new(tp, eme.into(), lrl);
+            let token = Token::new(tp, eme, lrl);
             self.tokens.push(token);
         }
 

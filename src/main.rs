@@ -29,12 +29,7 @@ fn main() -> std::io::Result<()> {
                 let mut scanner = Scanner::new(file_contents);
                 scanner.scan();
                 for ele in scanner.errors.iter() {
-                    writeln!(
-                        io::stderr(),
-                        "[line {}] Error: Unexpected character: {}",
-                        ele.line,
-                        ele.tok
-                    )?;
+                    writeln!(io::stderr(), "[line {}] Error: {}", ele.line, ele.tok)?;
                 }
                 for ele in scanner.tokens.iter() {
                     writeln!(io::stdout(), "{ele}")?;

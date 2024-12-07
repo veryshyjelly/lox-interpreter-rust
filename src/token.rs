@@ -100,6 +100,8 @@ impl Display for TokenType {
 
 pub enum Literal {
     None,
+    String(String),
+    Number(f64),
 }
 
 impl Display for Literal {
@@ -107,6 +109,8 @@ impl Display for Literal {
         use Literal::*;
         match self {
             None => write!(f, "null"),
+            String(s) => write!(f, "{s}"),
+            Number(n) => write!(f, "{n}"),
         }
     }
 }
