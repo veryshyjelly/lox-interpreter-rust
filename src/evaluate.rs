@@ -136,9 +136,7 @@ impl UnaryOp {
                 } else if exp == Primary::Nil {
                     Ok(Primary::Boolean(true))
                 } else {
-                    Err(RuntimeError {
-                        err: "Operand must be a boolean".into(),
-                    })
+                    Ok(Primary::Boolean(false))
                 }
             }
         }
