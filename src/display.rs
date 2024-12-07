@@ -68,7 +68,7 @@ impl Display for Unary {
 impl Display for Primary {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let v = match self {
-            Primary::Number(n) => n.to_string(),
+            Primary::Number(n) => format_float(n),
             Primary::String(s) => s.clone(),
             Primary::True => "true".into(),
             Primary::False => "false".into(),
@@ -76,5 +76,13 @@ impl Display for Primary {
             Primary::ParenExpr(expression) => format!("{expression}"),
         };
         write!(f, "{v}")
+    }
+}
+
+fn format_float(value: &f64) -> String {
+    if value.fract() == 0.0 {
+        format!("{:.1}", value)
+    } else {
+        value.to_string()
     }
 }

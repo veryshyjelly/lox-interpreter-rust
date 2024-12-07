@@ -104,9 +104,6 @@ pub enum Literal {
     None,
     String(String),
     Number(f64),
-    True,
-    False,
-    Nil,
 }
 
 impl Display for Literal {
@@ -116,19 +113,14 @@ impl Display for Literal {
             None => write!(f, "null"),
             String(s) => write!(f, "{s}"),
             Number(n) => write!(f, "{}", format_float(n)),
-            True => write!(f, "true"),
-            False => write!(f, "false"),
-            Nil => write!(f, "nil"),
         }
     }
 }
 
 fn format_float(value: &f64) -> String {
     if value.fract() == 0.0 {
-        // If no fractional part, force one decimal place
         format!("{:.1}", value)
     } else {
-        // Otherwise, keep the original value
         value.to_string()
     }
 }
