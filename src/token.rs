@@ -110,8 +110,18 @@ impl Display for Literal {
         match self {
             None => write!(f, "null"),
             String(s) => write!(f, "{s}"),
-            Number(n) => write!(f, "{n}"),
+            Number(n) => write!(f, "{}", format_float(n)),
         }
+    }
+}
+
+fn format_float(value: &f64) -> String {
+    if value.fract() == 0.0 {
+        // If no fractional part, force one decimal place
+        format!("{:.1}", value)
+    } else {
+        // Otherwise, keep the original value
+        value.to_string()
     }
 }
 

@@ -102,13 +102,32 @@ impl Scanner {
                     continue;
                 }
                 c => {
-                    if !c.is_whitespace() {
+                    if c.is_numeric() {
+                        let mut res = vec![*c];
+                        while let Some(&c) = iter.next_if(|&&x| x.is_numeric()) {
+                            res.push(c);
+                        }
+                        if Some(&&'.') == iter.peek() {
+                            res.push(*iter.next().unwrap());
+                            while let Some(&c) = iter.next_if(|&&x| x.is_numeric()) {
+                                res.push(c);
+                            }
+                        }
+                        let n: String = res.iter().collect();
+                        (
+                            TokenType::Number,
+                            n.clone(),
+                            Literal::Number(n.parse().unwrap()),
+                        )
+                    } else if c.is_whitespace() {
+                        continue;
+                    } else {
                         self.errors.push(ErrToken {
                             line,
                             tok: format!("Unexpected character: {}", c),
                         });
+                        continue;
                     }
-                    continue;
                 }
             };
             let token = Token::new(tp, eme, lrl);
