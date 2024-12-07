@@ -32,7 +32,7 @@ impl EqualityOp {
     fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), &'a [Token]> {
         match src[0].token_type {
             TokenType::BangEqual => Ok((EqualityOp::NotEquals, &src[1..])),
-            TokenType::Equal => Ok((EqualityOp::EqualEquals, &src[1..])),
+            TokenType::EqualEqual => Ok((EqualityOp::EqualEquals, &src[1..])),
             _ => Err(src),
         }
     }
@@ -121,7 +121,6 @@ impl Factor {
         rest: Option<(FactorOp, Box<Factor>)>,
     ) -> Result<(Self, &'a [Token]), &'a [Token]> {
         let (unary, rem) = Unary::parse(src)?;
-        // println!("unary: {} \n rem: {:?}", unary, rem);
         if let Ok((op, rem)) = FactorOp::parse(rem) {
             let eq = Factor { unary, rest };
             Factor::parse(rem, Some((op, Box::new(eq))))
