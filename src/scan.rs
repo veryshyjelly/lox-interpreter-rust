@@ -82,11 +82,13 @@ impl Scanner {
                     line += 1;
                     continue;
                 }
-                _ => {
-                    self.errors.push(ErrToken {
-                        line,
-                        tok: c.clone(),
-                    });
+                c => {
+                    if !c.is_whitespace() {
+                        self.errors.push(ErrToken {
+                            line,
+                            tok: c.clone(),
+                        });
+                    }
                     continue;
                 }
             };
