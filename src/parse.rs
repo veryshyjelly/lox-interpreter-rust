@@ -23,7 +23,7 @@ impl<'a> Parser<'a> {
 
 impl Expression {
     fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), &'a [Token]> {
-        let (eq, rem) = Equality::parse(src)?;
+        let (eq, rem) = Equality::parse(src, None)?;
         Ok((Expression(eq), rem))
     }
 }
@@ -32,22 +32,24 @@ impl EqualityOp {
     fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), &'a [Token]> {
         match src[0].token_type {
             TokenType::BangEqual => Ok((EqualityOp::NotEquals, &src[1..])),
-            TokenType::Equal => Ok((EqualityOp::Equals, &src[1..])),
+            TokenType::Equal => Ok((EqualityOp::EqualEquals, &src[1..])),
             _ => Err(src),
         }
     }
 }
 
 impl Equality {
-    fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), &'a [Token]> {
-        let (comparision, mut rem) = Comparision::parse(src)?;
-        let mut rest = vec![];
-        while let Ok((op, r)) = EqualityOp::parse(rem) {
-            let (cmp, r) = Comparision::parse(r)?;
-            rem = r;
-            rest.push((op, cmp));
+    fn parse<'a>(
+        src: &'a [Token],
+        rest: Option<(EqualityOp, Box<Equality>)>,
+    ) -> Result<(Self, &'a [Token]), &'a [Token]> {
+        let (comparision, rem) = Comparision::parse(src, None)?;
+        if let Ok((op, rem)) = EqualityOp::parse(rem) {
+            let eq = Equality { comparision, rest };
+            Equality::parse(rem, Some((op, Box::new(eq))))
+        } else {
+            Ok((Equality { comparision, rest }, rem))
         }
-        Ok((Equality { comparision, rest }, rem))
     }
 }
 
@@ -64,15 +66,17 @@ impl ComparisionOp {
 }
 
 impl Comparision {
-    fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), &'a [Token]> {
-        let (term, mut rem) = Term::parse(src)?;
-        let mut rest = vec![];
-        while let Ok((op, r)) = ComparisionOp::parse(rem) {
-            let (term, r) = Term::parse(r)?;
-            rem = r;
-            rest.push((op, term));
+    fn parse<'a>(
+        src: &'a [Token],
+        rest: Option<(ComparisionOp, Box<Comparision>)>,
+    ) -> Result<(Self, &'a [Token]), &'a [Token]> {
+        let (term, rem) = Term::parse(src, None)?;
+        if let Ok((op, rem)) = ComparisionOp::parse(rem) {
+            let eq = Comparision { term, rest };
+            Comparision::parse(rem, Some((op, Box::new(eq))))
+        } else {
+            Ok((Comparision { term, rest }, rem))
         }
-        Ok((Comparision { term, rest }, rem))
     }
 }
 
@@ -87,15 +91,17 @@ impl TermOp {
 }
 
 impl Term {
-    fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), &'a [Token]> {
-        let (factor, mut rem) = Factor::parse(src)?;
-        let mut rest = vec![];
-        while let Ok((op, r)) = TermOp::parse(rem) {
-            let (factor, r) = Factor::parse(r)?;
-            rem = r;
-            rest.push((op, factor));
+    fn parse<'a>(
+        src: &'a [Token],
+        rest: Option<(TermOp, Box<Term>)>,
+    ) -> Result<(Self, &'a [Token]), &'a [Token]> {
+        let (factor, rem) = Factor::parse(src, None)?;
+        if let Ok((op, rem)) = TermOp::parse(rem) {
+            let eq = Term { factor, rest };
+            Term::parse(rem, Some((op, Box::new(eq))))
+        } else {
+            Ok((Term { factor, rest }, rem))
         }
-        Ok((Term { factor, rest }, rem))
     }
 }
 
@@ -110,15 +116,17 @@ impl FactorOp {
 }
 
 impl Factor {
-    fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), &'a [Token]> {
-        let (unary, mut rem) = Unary::parse(src)?;
-        let mut rest = vec![];
-        while let Ok((op, r)) = FactorOp::parse(rem) {
-            let (factor, r) = Unary::parse(r)?;
-            rem = r;
-            rest.push((op, factor));
+    fn parse<'a>(
+        src: &'a [Token],
+        rest: Option<(FactorOp, Box<Factor>)>,
+    ) -> Result<(Self, &'a [Token]), &'a [Token]> {
+        let (unary, rem) = Unary::parse(src)?;
+        if let Ok((op, rem)) = FactorOp::parse(rem) {
+            let eq = Factor { unary, rest };
+            Factor::parse(rem, Some((op, Box::new(eq))))
+        } else {
+            Ok((Factor { unary, rest }, rem))
         }
-        Ok((Factor { unary, rest }, rem))
     }
 }
 

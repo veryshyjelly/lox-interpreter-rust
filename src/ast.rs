@@ -4,25 +4,25 @@ pub struct Expression(pub Equality);
 #[derive(Debug)]
 pub struct Equality {
     pub comparision: Comparision,
-    pub rest: Vec<(EqualityOp, Comparision)>,
+    pub rest: Option<(EqualityOp, Box<Equality>)>,
 }
 
 #[derive(Debug)]
 pub struct Comparision {
     pub term: Term,
-    pub rest: Vec<(ComparisionOp, Term)>,
+    pub rest: Option<(ComparisionOp, Box<Comparision>)>,
 }
 
 #[derive(Debug)]
 pub struct Term {
     pub factor: Factor,
-    pub rest: Vec<(TermOp, Factor)>,
+    pub rest: Option<(TermOp, Box<Term>)>,
 }
 
 #[derive(Debug)]
 pub struct Factor {
     pub unary: Unary,
-    pub rest: Vec<(FactorOp, Unary)>,
+    pub rest: Option<(FactorOp, Box<Factor>)>,
 }
 
 #[derive(Debug)]
@@ -50,7 +50,7 @@ pub enum UnaryOp {
 #[derive(Debug)]
 pub enum EqualityOp {
     NotEquals,
-    Equals,
+    EqualEquals,
 }
 
 #[derive(Debug)]

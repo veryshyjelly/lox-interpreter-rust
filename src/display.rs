@@ -1,4 +1,4 @@
-use std::fmt::{Display, Pointer};
+use std::fmt::Display;
 
 use crate::ast::*;
 
@@ -8,65 +8,81 @@ impl Display for Expression {
     }
 }
 
+impl Display for EqualityOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            EqualityOp::NotEquals => write!(f, "!="),
+            EqualityOp::EqualEquals => write!(f, "=="),
+        }
+    }
+}
+
 impl Display for Equality {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.comparision.fmt(f)?;
-        for (op, cmp) in &self.rest {
-            op.fmt(f)?;
-            cmp.fmt(f)?;
+        if let Some((op, rest)) = &self.rest {
+            write!(f, "({} {} {})", op, rest, self.comparision)
+        } else {
+            write!(f, "{}", self.comparision)
         }
-        Ok(())
     }
 }
 
 impl Display for ComparisionOp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        match self {
+            ComparisionOp::Less => write!(f, "<"),
+            ComparisionOp::LessEqual => write!(f, "<="),
+            ComparisionOp::Greater => write!(f, ">"),
+            ComparisionOp::GreaterEqual => write!(f, ">="),
+        }
     }
 }
 
 impl Display for Comparision {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.term.fmt(f)?;
-        for (op, term) in &self.rest {
-            op.fmt(f)?;
-            term.fmt(f)?;
+        if let Some((op, rest)) = &self.rest {
+            write!(f, "({} {} {})", op, rest, self.term)
+        } else {
+            write!(f, "{}", self.term)
         }
-        Ok(())
     }
 }
 
 impl Display for TermOp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        match self {
+            TermOp::Plus => write!(f, "+"),
+            TermOp::Minus => write!(f, "-"),
+        }
     }
 }
 
 impl Display for Term {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.factor.fmt(f)?;
-        for (op, fact) in &self.rest {
-            op.fmt(f)?;
-            fact.fmt(f)?;
+        if let Some((op, rest)) = &self.rest {
+            write!(f, "({} {} {})", op, rest, self.factor)
+        } else {
+            write!(f, "{}", self.factor)
         }
-        Ok(())
     }
 }
 
 impl Display for FactorOp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        match self {
+            FactorOp::Mul => write!(f, "*"),
+            FactorOp::Div => write!(f, "/"),
+        }
     }
 }
 
 impl Display for Factor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.unary.fmt(f)?;
-        for (op, un) in &self.rest {
-            op.fmt(f)?;
-            un.fmt(f)?;
+        if let Some((op, rest)) = &self.rest {
+            write!(f, "({} {} {})", op, rest, self.unary)
+        } else {
+            write!(f, "{}", self.unary)
         }
-        Ok(())
     }
 }
 
