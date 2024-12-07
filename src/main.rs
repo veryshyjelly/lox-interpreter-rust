@@ -7,6 +7,7 @@ use parse::Parser;
 use scan::Scanner;
 
 mod ast;
+mod display;
 mod parse;
 mod scan;
 mod token;
@@ -45,6 +46,9 @@ fn main() -> std::io::Result<()> {
         "parse" => {
             let mut parser = Parser::new(&scanner.tokens);
             parser.parse();
+            for expr in parser.exprs {
+                println!("{}", expr);
+            }
             Ok(())
         }
         _ => writeln!(io::stderr(), "Unknown command: {}", command),
