@@ -157,3 +157,13 @@ impl Primary {
         }
     }
 }
+
+pub fn debug_primary(p: Primary) -> String {
+    match p {
+        Primary::Number(n) => n.to_string(),
+        Primary::String(s) => s.clone(),
+        Primary::Boolean(v) => v.to_string(),
+        Primary::Nil => "nil".into(),
+        Primary::ParenExpr(expression) => format!("(group {expression})"),
+    }
+}
