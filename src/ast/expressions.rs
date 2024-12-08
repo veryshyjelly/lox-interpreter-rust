@@ -65,6 +65,7 @@ pub enum Primary {
     Boolean(bool),
     Identifier(String),
     ParenExpr(Box<Expression>),
+    GlobalId(String),
     This,
     Nil,
 }
@@ -75,41 +76,6 @@ pub struct Function {}
 pub struct Parameters {}
 #[derive(Debug, Clone)]
 pub struct Arguments {}
-
-impl PartialEq for Primary {
-    fn eq(&self, other: &Self) -> bool {
-        match self {
-            Primary::Number(n) => {
-                if let Some(m) = other.get_number() {
-                    *n == m
-                } else {
-                    false
-                }
-            }
-            Primary::String(s) => {
-                if let Some(t) = other.get_string() {
-                    s == &t
-                } else {
-                    false
-                }
-            }
-            Primary::Boolean(b) => {
-                if let Some(c) = other.get_bool() {
-                    b == &c
-                } else {
-                    false
-                }
-            }
-            Primary::Nil => match other {
-                Primary::Nil => true,
-                _ => false,
-            },
-            Primary::ParenExpr(_) => false,
-            Primary::Identifier(_) => todo!(),
-            Primary::This => todo!(),
-        }
-    }
-}
 
 impl Primary {
     pub fn get_number(&self) -> Option<f64> {

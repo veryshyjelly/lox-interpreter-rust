@@ -137,6 +137,7 @@ impl Display for Primary {
             Primary::ParenExpr(expression) => format!("(group {expression})"),
             Primary::Identifier(_) => todo!(),
             Primary::This => todo!(),
+            Primary::GlobalId(_) => todo!(),
         };
         write!(f, "{v}")
     }

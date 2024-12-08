@@ -20,15 +20,3 @@ pub struct VarDecl {
     name: String,
     expr: Expression,
 }
-
-impl Eval for Declaration {
-    fn evaluate(&self) -> Result<Primary, RuntimeError> {
-        todo!()
-    }
-}
-
-impl Eval for ClassDecl {
-    fn evaluate(&self) -> Result<Primary, RuntimeError> {
-        todo!()
-    }
-}
