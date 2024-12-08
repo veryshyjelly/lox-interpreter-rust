@@ -1,51 +1,116 @@
-[![progress-banner](https://backend.codecrafters.io/progress/interpreter/2bf93c93-fb3d-47f8-b377-9f2542ac9c56)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
+# Rust-Lox Interpreter
 
-This is a starting point for Rust solutions to the
-["Build your own Interpreter" Challenge](https://app.codecrafters.io/courses/interpreter/overview).
+A Lox interpreter implemented entirely in Rust, following the principles and design outlined in [Crafting Interpreters](http://www.craftinginterpreters.com/) by Robert Nystrom. This project isn’t just an exercise in language implementation—it’s also an opportunity to deeply understand interpreters, improve Rust skills, and gain practical insights into language design and runtime behavior.
 
-This challenge follows the book
-[Crafting Interpreters](https://craftinginterpreters.com/) by Robert Nystrom.
+---
 
-In this challenge you'll build an interpreter for
-[Lox](https://craftinginterpreters.com/the-lox-language.html), a simple
-scripting language. Along the way, you'll learn about tokenization, ASTs,
-tree-walk interpreters and more.
+## Why This Interpreter?
 
-Before starting this challenge, make sure you've read the "Welcome" part of the
-book that contains these chapters:
+1. *Educational Value:*  
+   Implementing a language from scratch is one of the best ways to understand how programming languages actually work. By building each component—lexer, parser, interpreter—you gain a solid grasp of language design principles.
 
-- [Introduction](https://craftinginterpreters.com/introduction.html) (chapter 1)
-- [A Map of the Territory](https://craftinginterpreters.com/a-map-of-the-territory.html)
-  (chapter 2)
-- [The Lox Language](https://craftinginterpreters.com/the-lox-language.html)
-  (chapter 3)
+2. *Practical Rust Experience:*  
+   Rust’s strict safety and ownership rules encourage clean, efficient, and bug-resistant code. Crafting an interpreter in Rust provides hands-on learning with advanced features like lifetimes, pattern matching, and error handling.
 
-These chapters don't involve writing code, so they won't be covered in this
-challenge. This challenge will start from chapter 4,
-[Scanning](https://craftinginterpreters.com/scanning.html).
+3. *Insights Into Language Runtime Behavior:*  
+   Working through Lox gives you a glimpse into how scope resolution, variable declaration, function calls, and object-oriented features (like classes and inheritance) are managed at runtime.
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+4. *Flexibility for Experimentation:*  
+   Once the core interpreter is complete, you can extend Lox with custom features or optimizations. Experimentation is straightforward since you fully control the codebase.
 
-# Passing the first stage
+---
 
-The entry point for your program is in `src/main.rs`. Study and uncomment the
-relevant code, and push your changes to pass the first stage:
+## Features
 
-```sh
-git commit -am "pass 1st stage" # any msg
-git push origin master
-```
+- *Full Lox Language Support:*  
+  - Variables, functions, classes, inheritance.
+  - If statements, loops (while, for).
+  - Built-in functions and error handling.
 
-Time to move on to the next stage!
+- *Interactive REPL:*  
+  - Test code snippets on-the-fly.
+  - Rapidly explore language features without writing a full script.
 
-# Stage 2 & beyond
+- *File Execution:*  
+  - Run complete .lox files for more extensive testing and projects.
 
-Note: This section is for stages 2 and beyond.
+- *Robust Error Handling:*  
+  - Clear messages for syntax and runtime errors.
+  - Graceful handling of unexpected inputs.
 
-1. Ensure you have `cargo (1.82)` installed locally
-2. Run `./your_program.sh` to run your program, which is implemented in
-   `src/main.rs`. This command compiles your Rust project, so it might be slow
-   the first time you run it. Subsequent runs will be fast.
-3. Commit your changes and run `git push origin master` to submit your solution
-   to CodeCrafters. Test output will be streamed to your terminal.
+---
+
+## Getting Started
+
+1. *Prerequisites:*  
+   - [Rust](https://www.rust-lang.org/tools/install) installed.
+
+2. *Installation:*  
+   bash
+   git clone https://github.com/yourusername/rust-lox.git
+   cd rust-lox
+   cargo build --release
+   
+
+3. *Run the REPL:*  
+   bash
+   cargo run
+   
+   Enter Lox code directly into the prompt.
+
+4. *Run a Script:*  
+   bash
+   cargo run -- path/to/script.lox
+   
+
+---
+
+## Examples
+
+*Hello World:*
+lox
+print "Hello, world!";
+
+
+*Fibonacci:*
+lox
+fun fib(n) {
+  if (n <= 1) return n;
+  return fib(n - 1) + fib(n - 2);
+}
+
+print fib(10); // Outputs: 55
+
+
+*Classes:*
+lox
+class Animal {
+  speak() { print "I am an animal."; }
+}
+
+class Dog < Animal {
+  speak() { print "I am a dog."; }
+}
+
+var dog = Dog();
+dog.speak(); // Outputs: "I am a dog."
+
+
+---
+
+## Contributing
+
+Contributions are welcome! Feel free to open an issue or submit a pull request if you have suggestions, bug fixes, or new features you’d like to add. This project is meant to be a learning tool, so all improvements that help others understand interpreters and language design are appreciated.
+
+---
+
+## Acknowledgments
+
+- *Robert Nystrom* and [Crafting Interpreters](http://www.craftinginterpreters.com/) for providing the blueprint for this project.
+- The Rust community for maintaining excellent documentation and fostering a helpful environment for learning systems programming.
+
+---
+
+## License
+
+This project is released under the [MIT License](LICENSE).
