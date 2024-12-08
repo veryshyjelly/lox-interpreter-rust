@@ -3,7 +3,6 @@ use std::fs;
 use std::io::{self, Write};
 use std::process::exit;
 
-use evaluate::debug_primary;
 use parse::Parser;
 use scan::Scanner;
 
@@ -40,17 +39,6 @@ fn main() -> std::io::Result<()> {
         "evaluate" => {
             let scanner = tokenize(file_contents, false)?;
             let parser = parse(&scanner, false)?;
-            for expr in parser.exprs {
-                match expr.evaluate() {
-                    Ok(v) => {
-                        writeln!(io::stdout(), "{}", debug_primary(v))?;
-                    }
-                    Err(err) => {
-                        writeln!(io::stderr(), "{}", err.err)?;
-                        exit(70);
-                    }
-                }
-            }
         }
         _ => {
             writeln!(io::stderr(), "Unknown command: {}", command)?;
@@ -88,7 +76,7 @@ fn parse<'a>(scanner: &'a Scanner, debug: bool) -> std::io::Result<Parser> {
         )?;
         exit(65);
     } else if debug {
-        for expr in &parser.exprs {
+        for expr in &parser.program {
             println!("{}", expr);
         }
     }

@@ -1,4 +1,4 @@
-use crate::token::{Literal, Token, TokenType};
+use crate::token::{keywords, Literal, Token, TokenType};
 
 pub struct Scanner {
     src: Vec<char>,
@@ -74,9 +74,7 @@ impl Scanner {
                         res.push(c);
                     }
 
-                    if Some(&&'"') == iter.peek() {
-                        iter.next();
-                    } else {
+                    if let None = iter.next_if(|&&x| x == '"') {
                         self.errors.push(ScanError {
                             line,
                             tok: "Unterminated string.".into(),
@@ -125,26 +123,11 @@ impl Scanner {
                             res.push(c);
                         }
                         let id: String = res.into_iter().collect();
-                        let tok_type = match id.as_str() {
-                            "and" => TokenType::And,
-                            "class" => TokenType::Class,
-                            "else" => TokenType::Else,
-                            "false" => TokenType::False,
-                            "for" => TokenType::For,
-                            "fun" => TokenType::Fun,
-                            "if" => TokenType::If,
-                            "nil" => TokenType::Nil,
-                            "or" => TokenType::Or,
-                            "print" => TokenType::Print,
-                            "return" => TokenType::Return,
-                            "super" => TokenType::Super,
-                            "this" => TokenType::This,
-                            "true" => TokenType::True,
-                            "var" => TokenType::Var,
-                            "while" => TokenType::While,
-                            _ => TokenType::Identifier,
-                        };
-                        (tok_type, id.clone(), Literal::None)
+                        if keywords.contains_key(id.as_str()) {
+                            (keywords[id.as_str()], id.clone(), Literal::None)
+                        } else {
+                            (TokenType::Identifier, id.clone(), Literal::None)
+                        }
                     } else if c.is_whitespace() {
                         continue;
                     } else {

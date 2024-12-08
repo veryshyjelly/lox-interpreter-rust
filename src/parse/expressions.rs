@@ -1,42 +1,20 @@
-use crate::ast::*;
-use crate::token::{Literal, Token, TokenType};
-
-pub struct Parser<'a> {
-    src: &'a [Token],
-    pub exprs: Vec<Expression>,
-}
-
-pub struct ParseError<'a> {
-    pub tok: &'a Token,
-    pub err: String,
-}
-
-impl<'a> Parser<'a> {
-    pub fn new(input: &'a [Token]) -> Self {
-        Self {
-            src: input,
-            exprs: vec![],
-        }
-    }
-    pub fn parse(&mut self) -> Result<(), ParseError<'a>> {
-        while self.src[0].token_type != TokenType::Eof {
-            let (expr, rst) = Expression::parse(&self.src)?;
-            self.exprs.push(expr);
-            self.src = rst;
-        }
-        Ok(())
-    }
-}
+use super::*;
 
 impl Expression {
-    fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
-        let (eq, rem) = Equality::parse(src, None)?;
+    pub fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (eq, rem) = Assignment::parse(src)?;
         Ok((Expression(eq), rem))
     }
 }
 
+impl Assignment {
+    pub fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        todo!()
+    }
+}
+
 impl EqualityOp {
-    fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+    pub fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
         match src[0].token_type {
             TokenType::BangEqual => Ok((EqualityOp::NotEquals, &src[1..])),
             TokenType::EqualEqual => Ok((EqualityOp::EqualEquals, &src[1..])),
@@ -51,7 +29,7 @@ impl EqualityOp {
 impl Equality {
     fn parse<'a>(
         src: &'a [Token],
-        rest: Option<(EqualityOp, Box<Equality>)>,
+        rest: Option<(EqualityOp, Box<Self>)>,
     ) -> Result<(Self, &'a [Token]), ParseError<'a>> {
         let (comparision, rem) = Comparision::parse(src, None)?;
         if let Ok((op, rem)) = EqualityOp::parse(rem) {
@@ -81,7 +59,7 @@ impl ComparisionOp {
 impl Comparision {
     fn parse<'a>(
         src: &'a [Token],
-        rest: Option<(ComparisionOp, Box<Comparision>)>,
+        rest: Option<(ComparisionOp, Box<Self>)>,
     ) -> Result<(Self, &'a [Token]), ParseError<'a>> {
         let (term, rem) = Term::parse(src, None)?;
         if let Ok((op, rem)) = ComparisionOp::parse(rem) {
@@ -109,7 +87,7 @@ impl TermOp {
 impl Term {
     fn parse<'a>(
         src: &'a [Token],
-        rest: Option<(TermOp, Box<Term>)>,
+        rest: Option<(TermOp, Box<Self>)>,
     ) -> Result<(Self, &'a [Token]), ParseError<'a>> {
         let (factor, rem) = Factor::parse(src, None)?;
         if let Ok((op, rem)) = TermOp::parse(rem) {
@@ -168,9 +146,15 @@ impl Unary {
             let (un, rem) = Unary::parse(rem)?;
             Ok((Unary::Un(op, Box::new(un)), rem))
         } else {
-            let (pr, rem) = Primary::parse(src)?;
-            Ok((Unary::Pr(pr), rem))
+            let (pr, rem) = Call::parse(src)?;
+            Ok((Unary::Call(pr), rem))
         }
+    }
+}
+
+impl Call {
+    fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        todo!()
     }
 }
 
@@ -178,43 +162,41 @@ impl Primary {
     fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
         match src[0].token_type {
             TokenType::Number => {
-                if let Literal::Number(n) = src[0].literal {
-                    Ok((Primary::Number(n), &src[1..]))
-                } else {
-                    Err(ParseError {
-                        tok: &src[0],
-                        err: "Expect number.".into(),
-                    })
-                }
+                let s = src[0].literal.get_number().ok_or(ParseError {
+                    tok: &src[0],
+                    err: "Expect number.".into(),
+                })?;
+                Ok((Primary::Number(s), &src[1..]))
             }
             TokenType::String => {
-                if let Literal::String(s) = src[0].literal.clone() {
-                    Ok((Primary::String(s), &src[1..]))
-                } else {
-                    Err(ParseError {
-                        tok: &src[0],
-                        err: "Expect string.".into(),
-                    })
-                }
+                let s = src[0].literal.get_string().ok_or(ParseError {
+                    tok: &src[0],
+                    err: "Expect string.".into(),
+                })?;
+                Ok((Primary::String(s), &src[1..]))
             }
             TokenType::True => Ok((Primary::Boolean(true), &src[1..])),
             TokenType::False => Ok((Primary::Boolean(false), &src[1..])),
             TokenType::Nil => Ok((Primary::Nil, &src[1..])),
             TokenType::LeftParen => {
                 let (expr, rst) = Expression::parse(&src[1..])?;
-                if let TokenType::RightParen = rst[0].token_type {
-                    Ok((Primary::ParenExpr(Box::new(expr)), &rst[1..]))
-                } else {
-                    Err(ParseError {
-                        tok: &src[0],
-                        err: "Expect expression.".into(),
-                    })
-                }
+                let rst = match_tok(rst, TokenType::RightParen, "expression")?;
+
+                Ok((Primary::ParenExpr(Box::new(expr)), rst))
             }
             _ => Err(ParseError {
                 tok: &src[0],
                 err: "Expect expression.".into(),
             }),
         }
+    }
+}
+
+impl Arguments {
+    fn parse<'a>(
+        src: &'a [Token],
+        rest: Option<Box<Arguments>>,
+    ) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        todo!()
     }
 }

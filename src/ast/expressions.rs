@@ -1,5 +1,23 @@
 #[derive(Debug, Clone)]
-pub struct Expression(pub Equality);
+pub struct Expression(pub Assignment);
+
+#[derive(Debug, Clone)]
+pub enum Assignment {
+    Ass(Call, String, Box<Assignment>),
+    LogicOr(LogicOr),
+}
+
+#[derive(Debug, Clone)]
+pub struct LogicOr {
+    pub and: LogicAnd,
+    pub rest: Option<Box<LogicOr>>,
+}
+
+#[derive(Debug, Clone)]
+pub struct LogicAnd {
+    pub eq: Equality,
+    pub rest: Option<Box<LogicAnd>>,
+}
 
 #[derive(Debug, Clone)]
 pub struct Equality {
@@ -28,7 +46,16 @@ pub struct Factor {
 #[derive(Debug, Clone)]
 pub enum Unary {
     Un(UnaryOp, Box<Unary>),
-    Pr(Primary),
+    Call(Call),
+}
+
+#[derive(Debug, Clone)]
+pub struct Call {}
+
+#[derive(Debug, Clone)]
+pub enum Calling {
+    FuncCall(Option<Arguments>),
+    Mthd(String),
 }
 
 #[derive(Debug, Clone)]
@@ -36,9 +63,18 @@ pub enum Primary {
     Number(f64),
     String(String),
     Boolean(bool),
-    Nil,
+    Identifier(String),
     ParenExpr(Box<Expression>),
+    This,
+    Nil,
 }
+
+#[derive(Debug, Clone)]
+pub struct Function {}
+#[derive(Debug, Clone)]
+pub struct Parameters {}
+#[derive(Debug, Clone)]
+pub struct Arguments {}
 
 impl PartialEq for Primary {
     fn eq(&self, other: &Self) -> bool {
@@ -69,6 +105,8 @@ impl PartialEq for Primary {
                 _ => false,
             },
             Primary::ParenExpr(_) => false,
+            Primary::Identifier(_) => todo!(),
+            Primary::This => todo!(),
         }
     }
 }
@@ -96,19 +134,19 @@ impl Primary {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum UnaryOp {
     Minus,
     Bang,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum EqualityOp {
     NotEquals,
     EqualEquals,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum ComparisionOp {
     Less,
     LessEqual,
@@ -116,13 +154,13 @@ pub enum ComparisionOp {
     GreaterEqual,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum TermOp {
     Plus,
     Minus,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum FactorOp {
     Mul,
     Div,

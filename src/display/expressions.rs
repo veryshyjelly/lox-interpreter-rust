@@ -1,10 +1,27 @@
-use std::fmt::Display;
-
 use crate::ast::*;
+use std::fmt::Display;
 
 impl Display for Expression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
+    }
+}
+
+impl Display for Assignment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
+}
+
+impl Display for LogicOr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
+}
+
+impl Display for LogicAnd {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
     }
 }
 
@@ -99,8 +116,14 @@ impl Display for Unary {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Unary::Un(unary_op, unary) => write!(f, "({} {})", unary_op, unary),
-            Unary::Pr(primary) => primary.fmt(f),
+            Unary::Call(call) => call.fmt(f),
         }
+    }
+}
+
+impl Display for Call {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
     }
 }
 
@@ -112,6 +135,8 @@ impl Display for Primary {
             Primary::Boolean(v) => v.to_string(),
             Primary::Nil => "nil".into(),
             Primary::ParenExpr(expression) => format!("(group {expression})"),
+            Primary::Identifier(_) => todo!(),
+            Primary::This => todo!(),
         };
         write!(f, "{v}")
     }

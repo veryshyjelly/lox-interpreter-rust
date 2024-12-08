@@ -1,6 +1,9 @@
+use phf::phf_map;
 use std::fmt::Display;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+use convert_case::{Case, Casing};
+
+#[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub enum TokenType {
     // Single-character tokens
     LeftParen,
@@ -53,57 +56,32 @@ pub enum TokenType {
 
 impl Display for TokenType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use TokenType::*;
-        let d = match self {
-            LeftParen => "LEFT_PAREN",
-            RightParen => "RIGHT_PAREN",
-            LeftBrace => "LEFT_BRACE",
-            RightBrace => "RIGHT_BRACE",
-            Comma => "COMMA",
-            Dot => "DOT",
-            Minus => "MINUS",
-            Plus => "PLUS",
-            Semicolon => "SEMICOLON",
-            Slash => "SLASH",
-            Star => "STAR",
-            Bang => "BANG",
-            BangEqual => "BANG_EQUAL",
-            Equal => "EQUAL",
-            EqualEqual => "EQUAL_EQUAL",
-            Greater => "GREATER",
-            GreaterEqual => "GREATER_EQUAL",
-            Less => "LESS",
-            LessEqual => "LESS_EQUAL",
-            Identifier => "IDENTIFIER",
-            String => "STRING",
-            Number => "NUMBER",
-            And => "AND",
-            Class => "CLASS",
-            Else => "ELSE",
-            False => "FALSE",
-            Fun => "FUN",
-            For => "FOR",
-            If => "IF",
-            Nil => "NIL",
-            Or => "OR",
-            Print => "PRINT",
-            Return => "RETURN",
-            Super => "SUPER",
-            This => "THIS",
-            True => "TRUE",
-            Var => "VAR",
-            While => "WHILE",
-            Eof => "EOF",
-        };
-        write!(f, "{}", d)
+        let name = format!("{:?}", self); // Get the variant name.
+        write!(f, "{}", name.to_case(Case::Snake).to_uppercase())
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Literal {
     None,
     String(String),
     Number(f64),
+}
+
+impl Literal {
+    pub fn get_string(&self) -> Option<String> {
+        match self {
+            Literal::String(s) => Some(s.clone()),
+            _ => None,
+        }
+    }
+
+    pub fn get_number(&self) -> Option<f64> {
+        match self {
+            Literal::Number(n) => Some(*n),
+            _ => None,
+        }
+    }
 }
 
 impl Display for Literal {
@@ -139,6 +117,12 @@ impl Display for Token {
     }
 }
 
+impl PartialEq for Token {
+    fn eq(&self, other: &Self) -> bool {
+        self.token_type == other.token_type && self.literal == other.literal
+    }
+}
+
 impl Token {
     pub fn new(token_type: TokenType, lexeme: String, literal: Literal, line: usize) -> Self {
         Self {
@@ -149,3 +133,22 @@ impl Token {
         }
     }
 }
+
+pub static keywords: phf::Map<&'static str, TokenType> = phf_map!(
+    "and" => TokenType::And,
+    "class" => TokenType::Class,
+    "else" => TokenType::Else,
+    "false" => TokenType::False,
+    "for" => TokenType::For,
+    "fun" => TokenType::Fun,
+    "if" => TokenType::If,
+    "nil" => TokenType::Nil,
+    "or" => TokenType::Or,
+    "print" => TokenType::Print,
+    "return" => TokenType::Return,
+    "super" => TokenType::Super,
+    "this" => TokenType::This,
+    "true" => TokenType::True,
+    "var" => TokenType::Var,
+    "while" => TokenType::While,
+);
