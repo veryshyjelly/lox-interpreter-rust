@@ -1,5 +1,6 @@
 use crate::ast::*;
 
+#[derive(Clone)]
 pub struct RuntimeError {
     pub err: String,
 }
@@ -64,19 +65,27 @@ impl Comparision {
 
 impl TermOp {
     pub fn evaluate(&self, left: Primary, right: Primary) -> Result<Primary, RuntimeError> {
-        let left = left.get_number().ok_or(RuntimeError {
-            err: "Operands must be numbers.".into(),
-        })?;
-        let right = right.get_number().ok_or(RuntimeError {
-            err: "Operands must be numbers.".into(),
-        })?;
-
-        let val = match self {
-            TermOp::Plus => left + right,
-            TermOp::Minus => left - right,
+        let err = RuntimeError {
+            err: "Operands must be two numbers or two strings.".into(),
         };
+        if let Some(left) = left.get_number() {
+            let right = right.get_number().ok_or(err)?;
 
-        Ok(Primary::Number(val))
+            let val = match self {
+                TermOp::Plus => left + right,
+                TermOp::Minus => left - right,
+            };
+
+            Ok(Primary::Number(val))
+        } else if let Some(left) = left.get_string() {
+            let right = right.get_string().ok_or(err.clone())?;
+            match self {
+                TermOp::Plus => Ok(Primary::String(left + &right)),
+                _ => Err(err),
+            }
+        } else {
+            Err(err)
+        }
     }
 }
 
