@@ -22,8 +22,8 @@ impl EqualityOp {
 impl Equality {
     pub fn evaluate(&self) -> Result<Primary, RuntimeError> {
         if let Some((op, next)) = &self.rest {
-            let left = self.comparision.evaluate()?;
-            let right = next.evaluate()?;
+            let right = self.comparision.evaluate()?;
+            let left = next.evaluate()?;
             op.evaluate(left, right)
         } else {
             self.comparision.evaluate()
@@ -53,8 +53,8 @@ impl ComparisionOp {
 impl Comparision {
     pub fn evaluate(&self) -> Result<Primary, RuntimeError> {
         if let Some((op, next)) = &self.rest {
-            let left = self.term.evaluate()?;
-            let right = next.evaluate()?;
+            let right = self.term.evaluate()?;
+            let left = next.evaluate()?;
             op.evaluate(left, right)
         } else {
             self.term.evaluate()
@@ -83,8 +83,8 @@ impl TermOp {
 impl Term {
     pub fn evaluate(&self) -> Result<Primary, RuntimeError> {
         if let Some((op, next)) = &self.rest {
-            let left = self.factor.evaluate()?;
-            let right = next.evaluate()?;
+            let right = self.factor.evaluate()?;
+            let left = next.evaluate()?;
             op.evaluate(left, right)
         } else {
             self.factor.evaluate()
@@ -112,8 +112,8 @@ impl FactorOp {
 impl Factor {
     pub fn evaluate(&self) -> Result<Primary, RuntimeError> {
         if let Some((op, next)) = &self.rest {
-            let left = self.unary.evaluate()?;
-            let right = next.evaluate()?;
+            let right = self.unary.evaluate()?;
+            let left = next.evaluate()?;
             op.evaluate(left, right)
         } else {
             self.unary.evaluate()
