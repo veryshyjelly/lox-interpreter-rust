@@ -45,7 +45,10 @@ fn main() -> std::io::Result<()> {
                     Ok(v) => {
                         writeln!(io::stdout(), "{}", debug_primary(v))?;
                     }
-                    Err(err) => writeln!(io::stderr(), "{}", err.err)?,
+                    Err(err) => {
+                        writeln!(io::stderr(), "{}", err.err)?;
+                        exit(70);
+                    }
                 }
             }
         }
