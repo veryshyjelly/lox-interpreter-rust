@@ -250,6 +250,16 @@ impl Primary {
             TokenType::True => Ok((Primary::Boolean(true), &src[1..])),
             TokenType::False => Ok((Primary::Boolean(false), &src[1..])),
             TokenType::Nil => Ok((Primary::Nil, &src[1..])),
+            TokenType::This => Ok((Primary::This, &src[1..])),
+            TokenType::Super => {
+                let rest = match_tok(&src[1..], TokenType::Dot, "'.' after super")?;
+                let (id, rem) = get_identifier(rest)?;
+                Ok((Primary::SuperId(id), rem))
+            }
+            TokenType::Identifier => {
+                let (id, rem) = get_identifier(src)?;
+                Ok((Primary::Identifier(id), rem))
+            }
             TokenType::LeftParen => {
                 let (expr, rst) = Expression::parse(&src[1..])?;
                 let rst = match_tok(rst, TokenType::RightParen, "expression")?;

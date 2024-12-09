@@ -145,13 +145,13 @@ impl Eval for Primary {
     fn evaluate(&self) -> Result<Object, RuntimeError> {
         match self {
             Primary::ParenExpr(expression) => expression.evaluate(),
-            Primary::Number(_) => todo!(),
-            Primary::String(_) => todo!(),
-            Primary::Boolean(_) => todo!(),
-            Primary::Identifier(_) => todo!(),
-            Primary::SuperId(_) => todo!(),
+            Primary::Number(n) => Ok(Object::Number(*n)),
+            Primary::String(s) => Ok(Object::String(s.clone())),
+            Primary::Boolean(b) => Ok(Object::Boolean(*b)),
+            Primary::Identifier(id) => todo!(),
+            Primary::SuperId(id) => todo!(),
             Primary::This => todo!(),
-            Primary::Nil => todo!(),
+            Primary::Nil => Ok(Object::Nil),
         }
     }
 }
