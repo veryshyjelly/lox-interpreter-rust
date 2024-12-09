@@ -193,10 +193,14 @@ impl Primary {
 }
 
 impl Arguments {
-    fn parse<'a>(
-        src: &'a [Token],
-        rest: Option<Box<Arguments>>,
-    ) -> Result<(Self, &'a [Token]), ParseError<'a>> {
-        todo!()
+    pub fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (expr, mut rem) = Expression::parse(src)?;
+        let mut exprs = vec![expr];
+        while let Ok(r) = match_tok(rem, TokenType::Comma, ",") {
+            let (expr, r) = Expression::parse(r)?;
+            exprs.push(expr);
+            rem = r;
+        }
+        Ok((Arguments(exprs), rem))
     }
 }

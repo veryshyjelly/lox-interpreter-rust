@@ -2,12 +2,8 @@ pub mod declarations;
 pub mod expressions;
 pub mod statements;
 
-pub use declarations::*;
-pub use expressions::*;
-pub use statements::*;
-
 use crate::ast::*;
-use crate::token::{Literal, Token, TokenType};
+use crate::token::{Token, TokenType};
 
 pub struct Parser<'a> {
     src: &'a [Token],
@@ -40,10 +36,25 @@ impl Program {
         };
         while src[0].token_type != TokenType::Eof {
             let (stmt, rest) = Declaration::parse(src)?;
-            // program.declarations.push(stmt);
-            // src = rest;
+            program.declarations.push(stmt);
+            src = rest;
         }
         Ok(program)
+    }
+}
+
+fn get_identifier<'a>(src: &'a [Token]) -> Result<(String, &'a [Token]), ParseError<'a>> {
+    match &src[0] {
+        Token {
+            line: _,
+            token_type: TokenType::Identifier,
+            lexeme: id,
+            literal: _,
+        } => Ok((id.clone(), &src[1..])),
+        _ => Err(ParseError {
+            tok: &src[0],
+            err: "Expect identifier.".into(),
+        }),
     }
 }
 

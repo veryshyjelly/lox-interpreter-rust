@@ -16,36 +16,37 @@ pub struct ExprStmt(pub Expression);
 
 #[derive(Debug, Clone)]
 pub struct ForStmt {
-    first_dec: ForDec,
-    scnd_expr: Option<Expression>,
-    thrd_expr: Option<Expression>,
-    statement: Box<Statement>,
+    pub first_dec: ForDec,
+    pub scnd_expr: Option<Expression>,
+    pub thrd_expr: Option<Expression>,
+    pub body: Box<Statement>,
 }
 
 #[derive(Debug, Clone)]
 pub enum ForDec {
     VarDecl(VarDecl),
     ExprStmt(ExprStmt),
+    Nil,
 }
 
 #[derive(Debug, Clone)]
 pub struct IfStmt {
-    pred: Expression,
-    if_stmt: Box<Statement>,
-    else_stmt: Option<Box<Statement>>,
+    pub pred: Expression,
+    pub if_stmt: Box<Statement>,
+    pub else_stmt: Option<Box<Statement>>,
 }
 
 #[derive(Debug, Clone)]
 pub struct PrntStmt(pub Expression);
 
 #[derive(Debug, Clone)]
-pub struct RtrnStmt(Option<Expression>);
+pub struct RtrnStmt(pub Option<Expression>);
+
 #[derive(Debug, Clone)]
 pub struct WhileStmt {
-    pred: Expression,
-    stmt: Box<Statement>,
+    pub pred: Expression,
+    pub stmt: Box<Statement>,
 }
+
 #[derive(Debug, Clone)]
-pub struct Block {
-    declarations: Vec<Declaration>,
-}
+pub struct Block(pub Vec<Declaration>);

@@ -1,22 +1,38 @@
-use crate::evaluate::{Eval, RuntimeError};
-
 use super::*;
 
 #[derive(Debug, Clone)]
-pub struct Declaration {}
+pub enum Declaration {
+    ClassDecl(ClassDecl),
+    FunDecl(FunDecl),
+    VarDecl(VarDecl),
+    Statement(Statement),
+}
 
 #[derive(Debug, Clone)]
 pub struct ClassDecl {
-    name: String,
-    super_class: Option<String>,
-    functions: Vec<Function>,
+    pub name: String,
+    pub super_class: Option<String>,
+    pub functions: Vec<Function>,
 }
 
 #[derive(Debug, Clone)]
 pub struct FunDecl(pub Function);
-#[derive(Debug, Clone)]
 
+#[derive(Debug, Clone)]
 pub struct VarDecl {
-    name: String,
-    expr: Expression,
+    pub name: String,
+    pub expr: Option<Expression>,
 }
+
+#[derive(Debug, Clone)]
+pub struct Function {
+    pub name: String,
+    pub params: Option<Parameters>,
+    pub body: Block,
+}
+
+#[derive(Debug, Clone)]
+pub struct Parameters(pub Vec<String>);
+
+#[derive(Debug, Clone)]
+pub struct Arguments(pub Vec<Expression>);

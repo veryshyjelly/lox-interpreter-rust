@@ -1,3 +1,5 @@
+use super::*;
+
 #[derive(Debug, Clone)]
 pub struct Expression(pub Assignment);
 
@@ -69,13 +71,6 @@ pub enum Primary {
     This,
     Nil,
 }
-
-#[derive(Debug, Clone)]
-pub struct Function {}
-#[derive(Debug, Clone)]
-pub struct Parameters {}
-#[derive(Debug, Clone)]
-pub struct Arguments {}
 
 impl Primary {
     pub fn get_number(&self) -> Option<f64> {
