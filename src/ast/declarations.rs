@@ -32,7 +32,13 @@ pub struct Function {
 }
 
 #[derive(Debug, Clone)]
-pub struct Parameters(pub Vec<String>);
+pub struct Parameters {
+    pub param: String,
+    pub rest: Option<Box<Parameters>>,
+}
 
 #[derive(Debug, Clone)]
-pub struct Arguments(pub Vec<Expression>);
+pub struct Arguments {
+    pub expr: Expression,
+    pub rest: Option<Box<Arguments>>,
+}

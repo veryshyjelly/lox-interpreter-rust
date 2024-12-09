@@ -87,12 +87,21 @@ impl Function {
 impl Parameters {
     fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
         let (name, mut rem) = get_identifier(src)?;
-        let mut params = vec![name];
+        let mut params = Parameters {
+            param: name,
+            rest: None,
+        };
+
         while let Ok(r) = match_tok(rem, TokenType::Comma, ",") {
             let (name, r) = get_identifier(r)?;
-            params.push(name);
+            let next = Parameters {
+                param: name,
+                rest: Some(Box::new(params)),
+            };
+            params = next;
             rem = r;
         }
-        Ok((Parameters(params), rem))
+
+        Ok((params, rem))
     }
 }

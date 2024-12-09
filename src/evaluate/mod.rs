@@ -149,7 +149,7 @@ impl Eval for Primary {
             Primary::String(_) => todo!(),
             Primary::Boolean(_) => todo!(),
             Primary::Identifier(_) => todo!(),
-            Primary::GlobalId(_) => todo!(),
+            Primary::SuperId(_) => todo!(),
             Primary::This => todo!(),
             Primary::Nil => todo!(),
         }

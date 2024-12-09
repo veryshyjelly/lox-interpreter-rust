@@ -9,7 +9,42 @@ impl Expression {
 
 impl Assignment {
     pub fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
-        todo!()
+        let (or, rest) = LogicOr::parse(src)?;
+        Ok((Assignment::LogicOr(or), rest))
+    }
+}
+
+impl LogicOr {
+    pub fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (and, mut rem) = LogicAnd::parse(src)?;
+        let mut logic_or = LogicOr { and, rest: None };
+        while let Ok(r) = match_tok(rem, TokenType::Or, "or") {
+            let (and, r) = LogicAnd::parse(r)?;
+            let next = LogicOr {
+                and,
+                rest: Some(Box::new(logic_or)),
+            };
+            logic_or = next;
+            rem = r;
+        }
+        Ok((logic_or, rem))
+    }
+}
+
+impl LogicAnd {
+    pub fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (eq, mut rem) = Equality::parse(src, None)?;
+        let mut logic_and = LogicAnd { eq, rest: None };
+        while let Ok(r) = match_tok(rem, TokenType::And, "and") {
+            let (eq, r) = Equality::parse(r, None)?;
+            let next = LogicAnd {
+                eq,
+                rest: Some(Box::new(logic_and)),
+            };
+            logic_and = next;
+            rem = r;
+        }
+        Ok((logic_and, rem))
     }
 }
 
@@ -154,7 +189,44 @@ impl Unary {
 
 impl Call {
     fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
-        todo!()
+        let (prime, mut rem) = Primary::parse(src)?;
+        let mut callings = vec![];
+        while let Ok((cls, r)) = Calling::parse(rem) {
+            callings.push(cls);
+            rem = r;
+        }
+
+        Ok((
+            Call {
+                prime,
+                rest: callings,
+            },
+            rem,
+        ))
+    }
+}
+
+impl Calling {
+    fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        match src[0].token_type {
+            TokenType::LeftParen => {
+                if let Ok((arg, rem)) = Arguments::parse(&src[1..]) {
+                    let rem = match_tok(rem, TokenType::RightParen, "')'")?;
+                    Ok((Calling::FuncCall(Some(arg)), rem))
+                } else {
+                    let rem = match_tok(&src[1..], TokenType::RightParen, "')'")?;
+                    Ok((Calling::FuncCall(None), rem))
+                }
+            }
+            TokenType::Dot => {
+                let (id, rem) = get_identifier(&src[1..])?;
+                Ok((Calling::Mthd(id), rem))
+            }
+            _ => Err(ParseError {
+                tok: &src[0],
+                err: "Expect '(' or '.'".into(),
+            }),
+        }
     }
 }
 
@@ -195,12 +267,16 @@ impl Primary {
 impl Arguments {
     pub fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
         let (expr, mut rem) = Expression::parse(src)?;
-        let mut exprs = vec![expr];
+        let mut arguments = Arguments { expr, rest: None };
         while let Ok(r) = match_tok(rem, TokenType::Comma, ",") {
             let (expr, r) = Expression::parse(r)?;
-            exprs.push(expr);
+            let next = Arguments {
+                expr,
+                rest: Some(Box::new(arguments)),
+            };
+            arguments = next;
             rem = r;
         }
-        Ok((Arguments(exprs), rem))
+        Ok((arguments, rem))
     }
 }

@@ -5,7 +5,7 @@ pub struct Expression(pub Assignment);
 
 #[derive(Debug, Clone)]
 pub enum Assignment {
-    Ass(Call, String, Box<Assignment>),
+    Assign(Call, Box<Assignment>),
     LogicOr(LogicOr),
 }
 
@@ -52,7 +52,10 @@ pub enum Unary {
 }
 
 #[derive(Debug, Clone)]
-pub struct Call {}
+pub struct Call {
+    pub prime: Primary,
+    pub rest: Vec<Calling>,
+}
 
 #[derive(Debug, Clone)]
 pub enum Calling {
@@ -67,7 +70,7 @@ pub enum Primary {
     Boolean(bool),
     Identifier(String),
     ParenExpr(Box<Expression>),
-    GlobalId(String),
+    SuperId(String),
     This,
     Nil,
 }
