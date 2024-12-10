@@ -2,26 +2,48 @@ use super::*;
 
 impl Statement {
     pub fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
-        if let Ok((stmt, rem)) = ExprStmt::parse(src) {
-            Ok((Statement::ExprStmt(stmt), rem))
-        } else if let Ok((stmt, rem)) = IfStmt::parse(src) {
-            Ok((Statement::IfStmt(stmt), rem))
-        } else if let Ok((stmt, rem)) = ForStmt::parse(src) {
-            Ok((Statement::ForStmt(stmt), rem))
-        } else if let Ok((stmt, rem)) = WhileStmt::parse(src) {
-            Ok((Statement::WhileStmt(stmt), rem))
-        } else if let Ok((stmt, rem)) = PrntStmt::parse(src) {
-            Ok((Statement::PrntStmt(stmt), rem))
-        } else if let Ok((stmt, rem)) = RtrnStmt::parse(src) {
-            Ok((Statement::RtrnStmt(stmt), rem))
-        } else if let Ok((stmt, rem)) = Block::parse(src) {
-            Ok((Statement::Block(stmt), rem))
-        } else {
-            Err(ParseError {
-                err: "".into(),
-                tok: &src[0],
-            })
-        }
+        Self::parse_expr_stmt(src)
+            .or_else(|_| Self::parse_for_stmt(src))
+            .or_else(|_| Self::parse_if_stmt(src))
+            .or_else(|_| Self::parse_prnt_stmt(src))
+            .or_else(|_| Self::parse_rtrn_stmt(src))
+            .or_else(|_| Self::parse_while_stmt(src))
+            .or_else(|_| Self::parse_block(src))
+    }
+
+    fn parse_expr_stmt<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (stmt, rem) = ExprStmt::parse(src)?;
+        Ok((Statement::ExprStmt(stmt), rem))
+    }
+
+    fn parse_if_stmt<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (stmt, rem) = IfStmt::parse(src)?;
+        Ok((Statement::IfStmt(stmt), rem))
+    }
+
+    fn parse_for_stmt<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (stmt, rem) = ForStmt::parse(src)?;
+        Ok((Statement::ForStmt(stmt), rem))
+    }
+
+    fn parse_while_stmt<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (stmt, rem) = WhileStmt::parse(src)?;
+        Ok((Statement::WhileStmt(stmt), rem))
+    }
+
+    fn parse_rtrn_stmt<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (stmt, rem) = RtrnStmt::parse(src)?;
+        Ok((Statement::RtrnStmt(stmt), rem))
+    }
+
+    fn parse_prnt_stmt<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (stmt, rem) = PrntStmt::parse(src)?;
+        Ok((Statement::PrntStmt(stmt), rem))
+    }
+
+    fn parse_block<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (stmt, rem) = Block::parse(src)?;
+        Ok((Statement::Block(stmt), rem))
     }
 }
 

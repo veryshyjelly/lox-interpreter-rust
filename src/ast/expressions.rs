@@ -75,28 +75,28 @@ pub enum Primary {
     Nil,
 }
 
-impl Primary {
-    pub fn get_number(&self) -> Option<f64> {
-        match self {
-            Primary::Number(n) => Some(*n),
-            _ => None,
-        }
-    }
+// impl Primary {
+//     pub fn get_number(&self) -> Option<f64> {
+//         match self {
+//             Primary::Number(n) => Some(*n),
+//             _ => None,
+//         }
+//     }
 
-    pub fn get_string(&self) -> Option<String> {
-        match self {
-            Primary::String(s) => Some(s.clone()),
-            _ => None,
-        }
-    }
+//     pub fn get_string(&self) -> Option<String> {
+//         match self {
+//             Primary::String(s) => Some(s.clone()),
+//             _ => None,
+//         }
+//     }
 
-    pub fn get_bool(&self) -> Option<bool> {
-        match self {
-            Primary::Boolean(v) => Some(*v),
-            _ => None,
-        }
-    }
-}
+//     pub fn get_bool(&self) -> Option<bool> {
+//         match self {
+//             Primary::Boolean(v) => Some(*v),
+//             _ => None,
+//         }
+//     }
+// }
 
 #[derive(Debug, Copy, Clone)]
 pub enum UnaryOp {

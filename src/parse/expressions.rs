@@ -9,6 +9,17 @@ impl Expression {
 
 impl Assignment {
     pub fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        Self::parse_ass(src).or_else(|_| Self::parse_logic_or(src))
+    }
+
+    pub fn parse_ass<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (call, rem) = Call::parse(src)?;
+        let rem = match_tok(rem, TokenType::Equal, "'=' in assignment")?;
+        let (rest, rem) = Assignment::parse(rem)?;
+        Ok((Assignment::Assign(call, Box::new(rest)), rem))
+    }
+
+    pub fn parse_logic_or<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
         let (or, rest) = LogicOr::parse(src)?;
         Ok((Assignment::LogicOr(or), rest))
     }
