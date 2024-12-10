@@ -94,6 +94,6 @@ impl Display for Block {
             .map(|x| x.to_string())
             .collect::<Vec<_>>()
             .join("\n");
-        write!(f, "{{ \n\t{} }}", indent(body))
+        write!(f, "{{\n\t{}\n}}", indent(body))
     }
 }

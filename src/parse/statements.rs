@@ -143,8 +143,10 @@ impl RtrnStmt {
     fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
         let rem = match_tok(src, TokenType::Return, "'return'")?;
         if let Ok((e, rem)) = Expression::parse(rem) {
+            let rem = match_tok(rem, TokenType::Semicolon, ";")?;
             Ok((RtrnStmt(Some(e)), rem))
         } else {
+            let rem = match_tok(rem, TokenType::Semicolon, ";")?;
             Ok((RtrnStmt(None), rem))
         }
     }
@@ -154,19 +156,20 @@ impl PrntStmt {
     fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
         let rem = match_tok(src, TokenType::Print, "'print'")?;
         let (expr, rem) = Expression::parse(rem)?;
+        let rem = match_tok(rem, TokenType::Semicolon, ";")?;
         Ok((PrntStmt(expr), rem))
     }
 }
 
 impl Block {
     pub fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
-        let mut rem = match_tok(src, TokenType::LeftBrace, "{")?;
+        let mut rem = match_tok(src, TokenType::LeftBrace, "'{' before block")?;
         let mut decrs = vec![];
         while let Ok((dec, r)) = Declaration::parse(rem) {
             decrs.push(dec);
             rem = r;
         }
-        let rem = match_tok(src, TokenType::RightBrace, "'}' after block")?;
+        let rem = match_tok(rem, TokenType::RightBrace, "'}' after block")?;
         Ok((Block(decrs), rem))
     }
 }

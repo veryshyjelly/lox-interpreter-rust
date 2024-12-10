@@ -1,4 +1,4 @@
-use crate::ast::*;
+use crate::{ast::*, display::indent};
 use std::fmt::Display;
 
 impl Display for Declaration {
@@ -20,7 +20,7 @@ impl Display for ClassDecl {
         }
         writeln!(f, "{{")?;
         for func in &self.functions {
-            writeln!(f, "{func}")?;
+            writeln!(f, "\t{}", indent(func.to_string()))?;
         }
         writeln!(f, "}}")
     }
@@ -46,7 +46,7 @@ impl Display for Function {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{}({}) {}",
+            "{}({}) {}\n",
             self.name,
             self.params.as_ref().map_or("".into(), |x| x.to_string()),
             self.body

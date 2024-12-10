@@ -2,16 +2,30 @@ use super::*;
 
 impl Declaration {
     pub fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
-        if let Ok((cls, rem)) = ClassDecl::parse(src) {
-            Ok((Declaration::ClassDecl(cls), rem))
-        } else if let Ok((fun, rem)) = FunDecl::parse(src) {
-            Ok((Declaration::FunDecl(fun), rem))
-        } else if let Ok((var, rem)) = VarDecl::parse(src) {
-            Ok((Declaration::VarDecl(var), rem))
-        } else {
-            let (stmt, rem) = Statement::parse(src)?;
-            Ok((Declaration::Statement(stmt), rem))
-        }
+        Self::parse_cls(src)
+            .or_else(|_| Self::parse_fun(src))
+            .or_else(|_| Self::parse_var(src))
+            .or_else(|_| Self::parse_stmt(src))
+    }
+
+    fn parse_cls<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (dec, rem) = ClassDecl::parse(src)?;
+        Ok((Declaration::ClassDecl(dec), rem))
+    }
+
+    fn parse_fun<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (dec, rem) = FunDecl::parse(src)?;
+        Ok((Declaration::FunDecl(dec), rem))
+    }
+
+    fn parse_var<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (dec, rem) = VarDecl::parse(src)?;
+        Ok((Declaration::VarDecl(dec), rem))
+    }
+
+    fn parse_stmt<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
+        let (dec, rem) = Statement::parse(src)?;
+        Ok((Declaration::Statement(dec), rem))
     }
 }
 
@@ -25,11 +39,13 @@ impl ClassDecl {
             let _ = super_class.insert(sup_class_name);
             rem = r;
         }
+        let mut rem = match_tok(rem, TokenType::LeftBrace, "'{' before class body")?;
         let mut funcs = vec![];
         while let Ok((func, r)) = Function::parse(rem) {
             funcs.push(func);
             rem = r;
         }
+        let rem = match_tok(rem, TokenType::RightBrace, "'}' after class body")?;
         Ok((
             ClassDecl {
                 name: class_name,
@@ -53,7 +69,7 @@ impl VarDecl {
     pub fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
         let rem = match_tok(src, TokenType::Var, "var")?;
         let (name, rem) = get_identifier(rem)?;
-        if let Ok(rem) = match_tok(src, TokenType::Equal, "=") {
+        if let Ok(rem) = match_tok(rem, TokenType::Equal, "'=' after var name") {
             let (expr, rem) = Expression::parse(rem)?;
             let rem = match_tok(rem, TokenType::Semicolon, ";")?;
             Ok((
@@ -79,6 +95,7 @@ impl Function {
             let _ = params.insert(parm);
             rem = r;
         }
+        let rem = match_tok(rem, TokenType::RightParen, ")")?;
         let (body, rem) = Block::parse(rem)?;
         Ok((Function { name, params, body }, rem))
     }

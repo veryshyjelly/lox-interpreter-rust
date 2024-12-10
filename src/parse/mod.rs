@@ -10,6 +10,7 @@ pub struct Parser<'a> {
     pub program: Option<Program>,
 }
 
+#[derive(Debug)]
 pub struct ParseError<'a> {
     pub tok: &'a Token,
     pub err: String,
