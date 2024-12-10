@@ -3,6 +3,8 @@ use std::fs;
 use std::io::{self, Write};
 use std::process::exit;
 
+use evaluate::environment::Env;
+use evaluate::Eval;
 use parse::Parser;
 use scan::Scanner;
 
@@ -39,6 +41,11 @@ fn main() -> std::io::Result<()> {
         "evaluate" => {
             let scanner = tokenize(file_contents, false)?;
             let parser = parse(&scanner, false)?;
+            let mut env = Env::default();
+            for d in &parser.program.unwrap().declarations {
+                let (_, e) = d.evaluate(env).unwrap();
+                env = e;
+            }
         }
         _ => {
             writeln!(io::stderr(), "Unknown command: {}", command)?;

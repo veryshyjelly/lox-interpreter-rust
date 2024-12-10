@@ -21,7 +21,7 @@ pub trait EvalUnOp {
     fn evaluate(&self, exp: Object) -> Result<Object, RuntimeError>;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct RuntimeError {
     pub err: String,
 }
