@@ -4,10 +4,10 @@ use std::fmt::Display;
 impl Display for Declaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Declaration::ClassDecl(class_decl) => write!(f, "{class_decl}"),
-            Declaration::FunDecl(fun_decl) => write!(f, "{fun_decl}"),
-            Declaration::VarDecl(var_decl) => write!(f, "{var_decl}"),
-            Declaration::Statement(statement) => write!(f, "{statement}"),
+            Declaration::ClassDecl(class_decl) => class_decl.fmt(f),
+            Declaration::FunDecl(fun_decl) => fun_decl.fmt(f),
+            Declaration::VarDecl(var_decl) => var_decl.fmt(f),
+            Declaration::Statement(statement) => statement.fmt(f),
         }
     }
 }

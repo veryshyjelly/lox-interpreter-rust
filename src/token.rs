@@ -134,7 +134,7 @@ impl Token {
     }
 }
 
-pub static keywords: phf::Map<&'static str, TokenType> = phf_map!(
+pub static KEYWORDS: phf::Map<&'static str, TokenType> = phf_map!(
     "and" => TokenType::And,
     "class" => TokenType::Class,
     "else" => TokenType::Else,

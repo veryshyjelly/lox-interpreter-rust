@@ -1,4 +1,4 @@
-use crate::token::{keywords, Literal, Token, TokenType};
+use crate::token::{Literal, Token, TokenType, KEYWORDS};
 
 pub struct Scanner {
     src: Vec<char>,
@@ -123,8 +123,8 @@ impl Scanner {
                             res.push(c);
                         }
                         let id: String = res.into_iter().collect();
-                        if keywords.contains_key(id.as_str()) {
-                            (keywords[id.as_str()], id.clone(), Literal::None)
+                        if KEYWORDS.contains_key(id.as_str()) {
+                            (KEYWORDS[id.as_str()], id.clone(), Literal::None)
                         } else {
                             (TokenType::Identifier, id.clone(), Literal::None)
                         }

@@ -13,3 +13,7 @@ impl Display for Program {
         Ok(())
     }
 }
+
+fn indent(s: String) -> String {
+    s.lines().collect::<Vec<_>>().join("\n\t")
+}

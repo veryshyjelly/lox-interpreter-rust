@@ -76,7 +76,7 @@ fn parse<'a>(scanner: &'a Scanner, debug: bool) -> std::io::Result<Parser> {
         )?;
         exit(65);
     } else if debug {
-        for expr in &parser.program {
+        if let Some(expr) = &parser.program {
             println!("{}", expr);
         }
     }
