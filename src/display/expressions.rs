@@ -9,19 +9,30 @@ impl Display for Expression {
 
 impl Display for Assignment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        match self {
+            Assignment::Assign(call, assignment) => write!(f, "{call} = {assignment}"),
+            Assignment::LogicOr(logic_or) => write!(f, "{logic_or}"),
+        }
     }
 }
 
 impl Display for LogicOr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        write!(f, "{}", self.and)?;
+        match &self.rest {
+            Some(v) => write!(f, ", {v}"),
+            None => Ok(()),
+        }
     }
 }
 
 impl Display for LogicAnd {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        write!(f, "{}", self.eq)?;
+        match &self.rest {
+            Some(v) => write!(f, ", {v}"),
+            None => Ok(()),
+        }
     }
 }
 
@@ -123,7 +134,23 @@ impl Display for Unary {
 
 impl Display for Call {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        write!(f, "{}", self.prime)?;
+        for ing in &self.rest {
+            write!(f, "{ing}")?;
+        }
+        Ok(())
+    }
+}
+
+impl Display for Calling {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Calling::FuncCall(arguments) => match arguments {
+                Some(a) => write!(f, "({a})"),
+                None => write!(f, "()"),
+            },
+            Calling::Mthd(c) => write!(f, ".{c}"),
+        }
     }
 }
 
@@ -131,13 +158,13 @@ impl Display for Primary {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let v = match self {
             Primary::Number(n) => format_float(n),
-            Primary::String(s) => s.clone(),
+            Primary::String(s) => format!("\"{s}\""),
             Primary::Boolean(v) => v.to_string(),
             Primary::Nil => "nil".into(),
             Primary::ParenExpr(expression) => format!("(group {expression})"),
-            Primary::Identifier(_) => todo!(),
-            Primary::This => todo!(),
-            Primary::SuperId(_) => todo!(),
+            Primary::Identifier(id) => id.clone(),
+            Primary::This => "this".into(),
+            Primary::SuperId(id) => format!("super.{id}"),
         };
         write!(f, "{v}")
     }
@@ -148,5 +175,15 @@ fn format_float(value: &f64) -> String {
         format!("{:.1}", value)
     } else {
         value.to_string()
+    }
+}
+
+impl Display for Arguments {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.expr)?;
+        match &self.rest {
+            Some(v) => write!(f, ", {v}"),
+            None => Ok(()),
+        }
     }
 }
