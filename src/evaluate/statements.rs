@@ -69,8 +69,11 @@ impl Eval for PrntStmt {
 }
 
 impl Eval for Block {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
-        todo!()
+    fn evaluate(&self, mut env: Env) -> Result<(Object, Env), RuntimeError> {
+        for d in &self.0 {
+            (_, env) = d.evaluate(env)?;
+        }
+        Ok((Object::Nil, env))
     }
 }
 
