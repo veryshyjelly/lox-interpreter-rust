@@ -20,25 +20,23 @@ impl Eval for ExprStmt {
     }
 }
 
+fn get_do_or_not(v: Object) -> bool {
+    match v {
+        Object::Boolean(b) => b,
+        Object::Nil => false,
+        _ => true,
+    }
+}
+
 impl Eval for IfStmt {
     fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         let v = self.pred.evaluate(env)?;
-        if Self::get_do_or_not(v) {
+        if get_do_or_not(v) {
             self.if_stmt.evaluate(env)
         } else if let Some(el) = &self.else_stmt {
             el.evaluate(env)
         } else {
             Ok(Object::Nil)
-        }
-    }
-}
-
-impl IfStmt {
-    fn get_do_or_not(v: Object) -> bool {
-        match v {
-            Object::Boolean(b) => b,
-            Object::Nil => false,
-            _ => true,
         }
     }
 }
@@ -60,7 +58,10 @@ impl Eval for ForDec {
 
 impl Eval for WhileStmt {
     fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
-        todo!()
+        while get_do_or_not(self.pred.evaluate(env)?) {
+            self.stmt.evaluate(env)?;
+        }
+        Ok(Object::Nil)
     }
 }
 
