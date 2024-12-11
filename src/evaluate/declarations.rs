@@ -21,7 +21,10 @@ impl Eval for ClassDecl {
 
 impl Eval for FunDecl {
     fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
-        self.0.evaluate(env)
+        let func = self.0.evaluate(env)?;
+        let name = func.get_function().unwrap().name;
+        env.last_mut().unwrap().0.insert(name, func);
+        Ok(Object::Nil)
     }
 }
 

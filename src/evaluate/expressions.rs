@@ -1,5 +1,3 @@
-use std::borrow::BorrowMut;
-
 use environment::find_id;
 
 use super::*;

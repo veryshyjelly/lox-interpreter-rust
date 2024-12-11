@@ -31,7 +31,7 @@ impl<'a> Display for Object {
             String(s) => s.clone(),
             Boolean(v) => v.to_string(),
             Object(v) => format!("Object {v}"),
-            Function(v) => format!("function"),
+            Function(v) => format!("<fn {}>", v.name),
             Nil => "nil".into(),
         };
         write!(f, "{v}")
