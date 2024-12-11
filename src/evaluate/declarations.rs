@@ -12,8 +12,40 @@ impl Eval for Declaration {
 }
 
 impl Eval for ClassDecl {
-    fn evaluate(&self, _: Rc<RefCell<Env>>) -> Result<Object, RuntimeError> {
-        todo!()
+    fn evaluate(&self, env: Rc<RefCell<Env>>) -> Result<Object, RuntimeError> {
+        let name = self.name.clone();
+
+        let cls = |_,
+                   name: &Vec<String>,
+                   funcs: &Block,
+                   env: Rc<RefCell<Env>>|
+         -> Result<Object, RuntimeError> {
+            let env = Env::new_box_it(Some(env));
+            for f in &funcs.0 {
+                f.evaluate(env.clone())?;
+            }
+            Ok(Object::Object(Class {
+                name: name[0].clone(),
+                env,
+            }))
+        };
+
+        let mut body = vec![];
+        for f in &self.functions {
+            body.push(Declaration::FunDecl(FunDecl(f.clone())));
+        }
+
+        env.borrow_mut().values.insert(
+            name.clone(),
+            Object::Function(ExFn {
+                fun: Arc::new(cls),
+                body: Block(body),
+                env: env.clone(),
+                name: name.clone(),
+                params: vec![name.into()],
+            }),
+        );
+        Ok(Object::Nil)
     }
 }
 

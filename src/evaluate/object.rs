@@ -7,7 +7,7 @@ pub enum Object {
     Number(f64),
     String(String),
     Boolean(bool),
-    // Object(String),
+    Object(Class),
     Function(ExFn),
     Return(Box<Object>),
     Nil,
@@ -17,11 +17,17 @@ pub enum Object {
 pub struct ExFn {
     pub name: String,
     pub body: Block,
-    pub env: Rc<RefCell<Env>>,
     pub params: Vec<String>,
+    pub env: Rc<RefCell<Env>>,
     pub fun: Arc<
         dyn Fn(Vec<Object>, &Vec<String>, &Block, Rc<RefCell<Env>>) -> Result<Object, RuntimeError>,
     >,
+}
+
+#[derive(Clone)]
+pub struct Class {
+    pub name: String,
+    pub env: Rc<RefCell<Env>>,
 }
 
 impl<'a> Display for Object {
@@ -31,7 +37,7 @@ impl<'a> Display for Object {
             Number(n) => n.to_string(),
             String(s) => s.clone(),
             Boolean(v) => v.to_string(),
-            // Object(v) => format!("Object {v}"),
+            Object(v) => format!("<obj {}>", v.name),
             Function(v) => format!("<fn {}>", v.name),
             Return(object) => object.to_string(),
             Nil => "nil".into(),
@@ -64,10 +70,10 @@ impl PartialEq for Object {
                     false
                 }
             }
-            // Object::Object(o) => match other {
-            //     Object::Object(d) => o == d,
-            //     _ => false,
-            // },
+            Object::Object(o) => match other {
+                Object::Object(d) => o.env.borrow().values == d.env.borrow().values,
+                _ => false,
+            },
             Object::Nil => match other {
                 Object::Nil => true,
                 _ => false,
@@ -103,6 +109,13 @@ impl Object {
     pub fn get_function(&self) -> Option<&ExFn> {
         match self {
             Object::Function(v) => Some(v),
+            _ => None,
+        }
+    }
+
+    pub fn get_object(&self) -> Option<Class> {
+        match self {
+            Object::Object(cls) => Some(cls.clone()),
             _ => None,
         }
     }

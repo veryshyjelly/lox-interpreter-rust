@@ -17,8 +17,27 @@ impl Eval for Assignment {
                     let ev = find_id(id, Some(env.clone())).ok_or(RuntimeError {
                         err: format!("unbound variable {id}"),
                     })?;
-                    ev.borrow_mut().values.insert(id.clone(), res.clone());
-                    Ok(res)
+                    let mut v = ev.borrow().values.get(id).unwrap().clone();
+                    for c in &call.rest[..call.rest.len() - 1] {
+                        v = c.evaluate(v, env.clone())?;
+                    }
+                    if call.rest.len() > 0 {
+                        match &call.rest.last().unwrap() {
+                            Calling::FuncCall(_) => Err(RuntimeError {
+                                err: "cannot assign to function calls".into(),
+                            }),
+                            Calling::Mthd(id) => {
+                                let cls = v.get_object().ok_or(RuntimeError {
+                                    err: "method only allowed for objects.".into(),
+                                })?;
+                                cls.env.borrow_mut().values.insert(id.clone(), res.clone());
+                                Ok(res)
+                            }
+                        }
+                    } else {
+                        ev.borrow_mut().values.insert(id.clone(), res.clone());
+                        Ok(res)
+                    }
                 }
                 _ => Err(RuntimeError {
                     err: "Expect identifier".into(),
@@ -168,7 +187,16 @@ impl Calling {
                 let res = func.fun.as_ref()(args, &func.params, &func.body, func.env.clone())?;
                 Ok(res)
             }
-            Calling::Mthd(_) => todo!(),
+            Calling::Mthd(call) => {
+                let obj = exp.get_object().ok_or(RuntimeError {
+                    err: "Can only call methods on objects.".into(),
+                })?;
+                let res = find_id(call, Some(obj.env.clone())).ok_or(RuntimeError {
+                    err: "unbound variable".into(),
+                })?;
+                let rborrowed = res.borrow();
+                Ok(rborrowed.values.get(call).unwrap().clone())
+            }
         }
     }
 }
@@ -188,7 +216,10 @@ impl Eval for Primary {
                 Ok(val.values.get(id).unwrap().clone())
             }
             Primary::SuperId(_) => todo!(),
-            Primary::This => todo!(),
+            Primary::This => Ok(Object::Object(Class {
+                name: "this".into(),
+                env: env.clone(),
+            })),
             Primary::Nil => Ok(Object::Nil),
         }
     }
