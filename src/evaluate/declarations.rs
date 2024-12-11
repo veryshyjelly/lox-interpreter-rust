@@ -50,6 +50,15 @@ impl Eval for Function {
                    body: &Block,
                    env1: &Vec<Env>,
                    env_global: &Vec<Env>| {
+            if passed.len() != params.len() {
+                return Err(RuntimeError {
+                    err: format!(
+                        "Expect {} arguments but got {}.",
+                        params.len(),
+                        passed.len()
+                    ),
+                });
+            }
             let params = params.clone();
 
             let mut env = env_global.clone();

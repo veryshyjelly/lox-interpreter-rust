@@ -160,7 +160,7 @@ impl Calling {
         match &self {
             Calling::FuncCall(arguments) => {
                 let func = exp.get_function().ok_or(RuntimeError {
-                    err: "Expect function".into(),
+                    err: "Can only call functions and classes.".into(),
                 })?;
                 let args = arguments.as_ref().map_or(Ok(vec![]), |x| x.evaluate(env))?;
                 let res = func.fun.as_ref()(args, &func.params, &func.body, &func.env, env)?;
