@@ -6,6 +6,8 @@ use std::process::exit;
 use ast::Expression;
 use evaluate::environment::Env;
 use evaluate::Eval;
+use evaluate::Object;
+use evaluate::RuntimeError;
 use parse::Parser;
 use scan::Scanner;
 
@@ -48,7 +50,7 @@ fn main() -> std::io::Result<()> {
             let parser = parse(&scanner, false)?;
             let mut env = Env::default();
             for d in &parser.program.unwrap().declarations {
-                let (_, e) = d.evaluate(env).unwrap();
+                let (_, e) = catch_err(d.evaluate(env));
                 env = e;
             }
         }
@@ -103,13 +105,10 @@ fn parse<'a>(scanner: &'a Scanner, debug: bool) -> std::io::Result<Parser> {
 fn evaluate<'a>(scanner: &'a Scanner) -> std::io::Result<()> {
     let expr = Expression::parse(&scanner.tokens);
     match expr {
-        Ok((ex, _)) => match ex.evaluate(Env::default()) {
-            Ok((res, _)) => write!(io::stdout(), "{}", res),
-            Err(e) => {
-                write!(io::stderr(), "{}", e.err)?;
-                exit(70)
-            }
-        },
+        Ok((ex, _)) => {
+            let (val, _) = catch_err(ex.evaluate(Env::default()));
+            write!(io::stdout(), "{val}")
+        }
         Err(err) => writeln!(
             io::stderr(),
             "[line {}] Error at '{}': {}",
@@ -117,5 +116,15 @@ fn evaluate<'a>(scanner: &'a Scanner) -> std::io::Result<()> {
             err.tok.lexeme,
             err.err
         ),
+    }
+}
+
+fn catch_err(val: Result<(Object, Env), RuntimeError>) -> (Object, Env) {
+    match val {
+        Ok(v) => v,
+        Err(e) => {
+            write!(io::stderr(), "{}", e.err);
+            exit(70)
+        }
     }
 }
