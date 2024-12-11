@@ -10,7 +10,7 @@ pub mod operations;
 pub mod statements;
 
 pub trait Eval {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError>;
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError>;
 }
 
 pub trait EvalBinOp {

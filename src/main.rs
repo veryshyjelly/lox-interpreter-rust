@@ -48,10 +48,9 @@ fn main() -> std::io::Result<()> {
         "run" => {
             let scanner = tokenize(file_contents, false)?;
             let parser = parse(&scanner, false)?;
-            let mut env = Env::default();
+            let mut env = vec![Env::default()];
             for d in &parser.program.unwrap().declarations {
-                let (_, e) = catch_err(d.evaluate(env));
-                env = e;
+                catch_err(d.evaluate(&mut env));
             }
         }
         _ => {
@@ -106,7 +105,7 @@ fn evaluate<'a>(scanner: &'a Scanner) -> std::io::Result<()> {
     let expr = Expression::parse(&scanner.tokens);
     match expr {
         Ok((ex, _)) => {
-            let (val, _) = catch_err(ex.evaluate(Env::default()));
+            let val = catch_err(ex.evaluate(&mut vec![Env::default()]));
             write!(io::stdout(), "{val}")
         }
         Err(err) => writeln!(
@@ -119,7 +118,7 @@ fn evaluate<'a>(scanner: &'a Scanner) -> std::io::Result<()> {
     }
 }
 
-fn catch_err(val: Result<(Object, Env), RuntimeError>) -> (Object, Env) {
+fn catch_err(val: Result<Object, RuntimeError>) -> Object {
     match val {
         Ok(v) => v,
         Err(e) => {

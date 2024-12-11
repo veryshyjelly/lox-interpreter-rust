@@ -1,19 +1,24 @@
+use environment::find_id;
+
 use super::*;
 
 impl Eval for Expression {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         self.0.evaluate(env)
     }
 }
 
 impl Eval for Assignment {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         match self {
             Assignment::Assign(call, assignment) => match &call.prime {
                 Primary::Identifier(id) => {
-                    let (res, mut env) = assignment.evaluate(env)?;
-                    env.0.insert(id.clone(), res.clone());
-                    Ok((res, env))
+                    let res = assignment.evaluate(env)?;
+                    let ev = find_id(id, env).ok_or(RuntimeError {
+                        err: format!("unbound variable {id}"),
+                    })?;
+                    ev.0.insert(id.clone(), res.clone());
+                    Ok(res)
                 }
                 _ => Err(RuntimeError {
                     err: "Expect identifier".into(),
@@ -25,13 +30,13 @@ impl Eval for Assignment {
 }
 
 impl Eval for LogicOr {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
-        let (right, env) = self.and.evaluate(env)?;
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
+        let right = self.and.evaluate(env)?;
         if let Some(rest) = &self.rest {
-            let (left, env) = rest.evaluate(env)?;
-            Ok((Self::or(left, right), env))
+            let left = rest.evaluate(env)?;
+            Ok(Self::or(left, right))
         } else {
-            Ok((right, env))
+            Ok(right)
         }
     }
 }
@@ -53,13 +58,13 @@ impl LogicOr {
 }
 
 impl Eval for LogicAnd {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
-        let (right, env) = self.eq.evaluate(env)?;
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
+        let right = self.eq.evaluate(env)?;
         if let Some(rest) = &self.rest {
-            let (left, env) = rest.evaluate(env)?;
-            Ok((Self::and(left, right), env))
+            let left = rest.evaluate(env)?;
+            Ok(Self::and(left, right))
         } else {
-            Ok((right, env))
+            Ok(right)
         }
     }
 }
@@ -81,12 +86,11 @@ impl LogicAnd {
 }
 
 impl Eval for Equality {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         if let Some((op, next)) = &self.rest {
-            let (right, env) = self.comparision.evaluate(env)?;
-            let (left, env) = next.evaluate(env)?;
-            let res = op.evaluate(left, right)?;
-            Ok((res, env))
+            let right = self.comparision.evaluate(env)?;
+            let left = next.evaluate(env)?;
+            op.evaluate(left, right)
         } else {
             self.comparision.evaluate(env)
         }
@@ -94,12 +98,11 @@ impl Eval for Equality {
 }
 
 impl Eval for Comparision {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         if let Some((op, next)) = &self.rest {
-            let (right, env) = self.term.evaluate(env)?;
-            let (left, env) = next.evaluate(env)?;
-            let res = op.evaluate(left, right)?;
-            Ok((res, env))
+            let right = self.term.evaluate(env)?;
+            let left = next.evaluate(env)?;
+            op.evaluate(left, right)
         } else {
             self.term.evaluate(env)
         }
@@ -107,12 +110,11 @@ impl Eval for Comparision {
 }
 
 impl Eval for Term {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         if let Some((op, next)) = &self.rest {
-            let (right, env) = self.factor.evaluate(env)?;
-            let (left, env) = next.evaluate(env)?;
-            let res = op.evaluate(left, right)?;
-            Ok((res, env))
+            let right = self.factor.evaluate(env)?;
+            let left = next.evaluate(env)?;
+            op.evaluate(left, right)
         } else {
             self.factor.evaluate(env)
         }
@@ -120,12 +122,11 @@ impl Eval for Term {
 }
 
 impl Eval for Factor {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         if let Some((op, next)) = &self.rest {
-            let (right, env) = self.unary.evaluate(env)?;
-            let (left, env) = next.evaluate(env)?;
-            let res = op.evaluate(left, right)?;
-            Ok((res, env))
+            let right = self.unary.evaluate(env)?;
+            let left = next.evaluate(env)?;
+            op.evaluate(left, right)
         } else {
             self.unary.evaluate(env)
         }
@@ -133,11 +134,11 @@ impl Eval for Factor {
 }
 
 impl Eval for Unary {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         match self {
             Unary::Un(op, unary) => {
-                let (un, env) = unary.evaluate(env)?;
-                Ok((op.evaluate(un)?, env))
+                let un = unary.evaluate(env)?;
+                op.evaluate(un)
             }
             Unary::Call(call) => call.evaluate(env),
         }
@@ -145,17 +146,17 @@ impl Eval for Unary {
 }
 
 impl Eval for Call {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
-        let (mut pr, env) = self.prime.evaluate(env)?;
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
+        let mut pr = self.prime.evaluate(env)?;
         for r in &self.rest {
-            pr = r.evaluate(pr, &env)?;
+            pr = r.evaluate(pr, env)?;
         }
-        Ok((pr, env))
+        Ok(pr)
     }
 }
 
 impl Calling {
-    fn evaluate(&self, exp: Object, env: &Env) -> Result<Object, RuntimeError> {
+    fn evaluate(&self, exp: Object, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         match &self {
             Calling::FuncCall(arguments) => {
                 let func = exp.get_function().ok_or(RuntimeError {
@@ -170,29 +171,29 @@ impl Calling {
 }
 
 impl Eval for Primary {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         match self {
             Primary::ParenExpr(expression) => expression.evaluate(env),
-            Primary::Number(n) => Ok((Object::Number(*n), env)),
-            Primary::String(s) => Ok((Object::String(s.clone()), env)),
-            Primary::Boolean(b) => Ok((Object::Boolean(*b), env)),
+            Primary::Number(n) => Ok(Object::Number(*n)),
+            Primary::String(s) => Ok(Object::String(s.clone())),
+            Primary::Boolean(b) => Ok(Object::Boolean(*b)),
             Primary::Identifier(id) => {
-                let val = env.0.get(id).ok_or(RuntimeError {
+                let ev = find_id(id, env).ok_or(RuntimeError {
                     err: format!("unbound variable {}", id),
                 })?;
-                Ok((val.clone(), env))
+                Ok(ev.0.get(id).unwrap().clone())
             }
             Primary::SuperId(_) => todo!(),
             Primary::This => todo!(),
-            Primary::Nil => Ok((Object::Nil, env)),
+            Primary::Nil => Ok(Object::Nil),
         }
     }
 }
 
 impl Arguments {
-    fn evaluate(&self, env: &Env) -> Result<Vec<Object>, RuntimeError> {
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Vec<Object>, RuntimeError> {
         let mut rest = self.rest.as_ref().map_or(Ok(vec![]), |x| x.evaluate(env))?;
-        let (this, _) = self.expr.evaluate(env.clone())?;
+        let this = self.expr.evaluate(env)?;
         rest.push(this);
         Ok(rest)
     }

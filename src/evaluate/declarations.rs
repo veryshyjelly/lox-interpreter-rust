@@ -1,7 +1,7 @@
 use super::*;
 
 impl Eval for Declaration {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         match self {
             Declaration::ClassDecl(class_decl) => class_decl.evaluate(env),
             Declaration::FunDecl(fun_decl) => fun_decl.evaluate(env),
@@ -12,39 +12,40 @@ impl Eval for Declaration {
 }
 
 impl Eval for ClassDecl {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         todo!()
     }
 }
 
 impl Eval for FunDecl {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         todo!()
     }
 }
 
 impl Eval for VarDecl {
-    fn evaluate(&self, mut env: Env) -> Result<(Object, Env), RuntimeError> {
-        if let Some(e) = &self.expr {
-            let (res, mut env) = e.evaluate(env)?;
-            env.0.insert(self.name.clone(), res.clone());
-            Ok((res, env))
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
+        let res = if let Some(e) = &self.expr {
+            e.evaluate(env)?
         } else {
-            let v = Object::Nil;
-            env.0.insert(self.name.clone(), v.clone());
-            Ok((v, env))
-        }
+            Object::Nil
+        };
+        env.last_mut()
+            .unwrap()
+            .0
+            .insert(self.name.clone(), res.clone());
+        Ok(res)
     }
 }
 
 impl Eval for Function {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         todo!()
     }
 }
 
 impl Eval for Parameters {
-    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         todo!()
     }
 }
