@@ -45,6 +45,18 @@ impl Eval for ForStmt {
     fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         env.push(Env::default());
         let res = self.first_dec.evaluate(env)?;
+        loop {
+            if let Some(pred) = &self.scnd_expr {
+                let p = pred.evaluate(env)?;
+                if !get_do_or_not(p) {
+                    break;
+                }
+            }
+            self.body.evaluate(env)?;
+            if let Some(post) = &self.thrd_expr {
+                post.evaluate(env)?;
+            }
+        }
         env.pop();
         Ok(res)
     }
@@ -52,7 +64,11 @@ impl Eval for ForStmt {
 
 impl Eval for ForDec {
     fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
-        todo!()
+        match self {
+            ForDec::VarDecl(var_decl) => var_decl.evaluate(env),
+            ForDec::ExprStmt(expr_stmt) => expr_stmt.evaluate(env),
+            ForDec::Nil => Ok(Object::Nil),
+        }
     }
 }
 

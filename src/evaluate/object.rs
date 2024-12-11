@@ -1,7 +1,7 @@
+use std::fmt::Display;
 use std::sync::Arc;
-use std::{collections::HashMap, fmt::Display};
 
-use super::{Arguments, RuntimeError};
+use super::RuntimeError;
 
 #[derive(Clone)]
 pub enum Object {
@@ -62,7 +62,7 @@ impl PartialEq for Object {
                 Object::Nil => true,
                 _ => false,
             },
-            Object::Function(f) => false,
+            Object::Function(_) => false,
         }
     }
 }

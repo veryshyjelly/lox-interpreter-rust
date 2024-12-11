@@ -81,7 +81,7 @@ impl IfStmt {
 
 impl ForStmt {
     fn parse<'a>(src: &'a [Token]) -> Result<(Self, &'a [Token]), ParseError<'a>> {
-        let rem = match_tok(src, TokenType::If, "for")?;
+        let rem = match_tok(src, TokenType::For, "for")?;
         let rem = match_tok(rem, TokenType::LeftParen, "'(' after for")?;
         let (first_dec, mut rem) = ForDec::parse(rem)?;
         let mut scnd_expr = None;
