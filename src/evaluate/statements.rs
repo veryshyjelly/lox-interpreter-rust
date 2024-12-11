@@ -22,14 +22,23 @@ impl Eval for ExprStmt {
 
 impl Eval for IfStmt {
     fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
-        if self.pred.evaluate(env)?.get_bool().ok_or(RuntimeError {
-            err: "expected bool".into(),
-        })? {
+        let v = self.pred.evaluate(env)?;
+        if Self::get_do_or_not(v) {
             self.if_stmt.evaluate(env)
         } else if let Some(el) = &self.else_stmt {
             el.evaluate(env)
         } else {
             Ok(Object::Nil)
+        }
+    }
+}
+
+impl IfStmt {
+    fn get_do_or_not(v: Object) -> bool {
+        match v {
+            Object::Boolean(b) => b,
+            Object::Nil => false,
+            _ => true,
         }
     }
 }
