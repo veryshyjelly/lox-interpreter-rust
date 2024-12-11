@@ -54,7 +54,11 @@ impl Eval for ForStmt {
                     break;
                 }
             }
-            self.body.evaluate(env)?;
+            let v = self.body.evaluate(env)?;
+            match &v {
+                Object::Return(_) => return Ok(v),
+                _ => {}
+            }
             if let Some(post) = &self.thrd_expr {
                 post.evaluate(env)?;
             }
@@ -77,7 +81,11 @@ impl Eval for ForDec {
 impl Eval for WhileStmt {
     fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         while get_do_or_not(self.pred.evaluate(env)?) {
-            self.stmt.evaluate(env)?;
+            let v = self.stmt.evaluate(env)?;
+            match &v {
+                Object::Return(_) => return Ok(v),
+                _ => {}
+            }
         }
         Ok(Object::Nil)
     }
@@ -95,7 +103,11 @@ impl Eval for Block {
     fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         env.push(Env::default());
         for d in &self.0 {
-            d.evaluate(env)?;
+            let v = d.evaluate(env)?;
+            match &v {
+                Object::Return(_) => return Ok(v),
+                _ => {}
+            }
         }
         env.pop();
         Ok(Object::Nil)

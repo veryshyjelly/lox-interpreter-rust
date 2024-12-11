@@ -51,9 +51,10 @@ impl Eval for Function {
                    env1: &Vec<Env>,
                    env_global: &Vec<Env>| {
             let params = params.clone();
-            let mut env = env_global.clone();
 
+            let mut env = env_global.clone();
             env.extend_from_slice(&env1);
+
             env.push(Env::default());
 
             for (name, value) in params.into_iter().zip(passed) {
