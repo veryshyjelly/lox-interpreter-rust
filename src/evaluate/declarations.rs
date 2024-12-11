@@ -25,13 +25,13 @@ impl Eval for FunDecl {
 
 impl Eval for VarDecl {
     fn evaluate(&self, mut env: Env) -> Result<(Object, Env), RuntimeError> {
-        let v = Object::Nil;
-        env.0.insert(self.name.clone(), v.clone());
         if let Some(e) = &self.expr {
             let (res, mut env) = e.evaluate(env)?;
             env.0.insert(self.name.clone(), res.clone());
             Ok((res, env))
         } else {
+            let v = Object::Nil;
+            env.0.insert(self.name.clone(), v.clone());
             Ok((v, env))
         }
     }
