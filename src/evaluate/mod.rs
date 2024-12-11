@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc, sync::Arc};
+
 use crate::ast::{declarations::*, expressions::*, statements::*};
 use environment::Env;
 pub use object::*;
@@ -10,7 +12,7 @@ pub mod operations;
 pub mod statements;
 
 pub trait Eval {
-    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError>;
+    fn evaluate(&self, env: Rc<RefCell<Env>>) -> Result<Object, RuntimeError>;
 }
 
 pub trait EvalBinOp {

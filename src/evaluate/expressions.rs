@@ -3,21 +3,21 @@ use environment::find_id;
 use super::*;
 
 impl Eval for Expression {
-    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
+    fn evaluate(&self, env: Rc<RefCell<Env>>) -> Result<Object, RuntimeError> {
         self.0.evaluate(env)
     }
 }
 
 impl Eval for Assignment {
-    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
+    fn evaluate(&self, env: Rc<RefCell<Env>>) -> Result<Object, RuntimeError> {
         match self {
             Assignment::Assign(call, assignment) => match &call.prime {
                 Primary::Identifier(id) => {
-                    let res = assignment.evaluate(env)?;
-                    let ev = find_id(id, env).ok_or(RuntimeError {
+                    let res = assignment.evaluate(env.clone())?;
+                    let ev = find_id(id, Some(env.clone())).ok_or(RuntimeError {
                         err: format!("unbound variable {id}"),
                     })?;
-                    ev.0.insert(id.clone(), res.clone());
+                    ev.borrow_mut().values.insert(id.clone(), res.clone());
                     Ok(res)
                 }
                 _ => Err(RuntimeError {
@@ -30,8 +30,8 @@ impl Eval for Assignment {
 }
 
 impl Eval for LogicOr {
-    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
-        let right = self.and.evaluate(env)?;
+    fn evaluate(&self, env: Rc<RefCell<Env>>) -> Result<Object, RuntimeError> {
+        let right = self.and.evaluate(env.clone())?;
         if let Some(rest) = &self.rest {
             let left = rest.evaluate(env)?;
             Ok(Self::or(left, right))
@@ -58,8 +58,8 @@ impl LogicOr {
 }
 
 impl Eval for LogicAnd {
-    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
-        let right = self.eq.evaluate(env)?;
+    fn evaluate(&self, env: Rc<RefCell<Env>>) -> Result<Object, RuntimeError> {
+        let right = self.eq.evaluate(env.clone())?;
         if let Some(rest) = &self.rest {
             let left = rest.evaluate(env)?;
             Ok(Self::and(left, right))
@@ -86,9 +86,9 @@ impl LogicAnd {
 }
 
 impl Eval for Equality {
-    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
+    fn evaluate(&self, env: Rc<RefCell<Env>>) -> Result<Object, RuntimeError> {
         if let Some((op, next)) = &self.rest {
-            let right = self.comparision.evaluate(env)?;
+            let right = self.comparision.evaluate(env.clone())?;
             let left = next.evaluate(env)?;
             op.evaluate(left, right)
         } else {
@@ -98,9 +98,9 @@ impl Eval for Equality {
 }
 
 impl Eval for Comparision {
-    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
+    fn evaluate(&self, env: Rc<RefCell<Env>>) -> Result<Object, RuntimeError> {
         if let Some((op, next)) = &self.rest {
-            let right = self.term.evaluate(env)?;
+            let right = self.term.evaluate(env.clone())?;
             let left = next.evaluate(env)?;
             op.evaluate(left, right)
         } else {
@@ -110,9 +110,9 @@ impl Eval for Comparision {
 }
 
 impl Eval for Term {
-    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
+    fn evaluate(&self, env: Rc<RefCell<Env>>) -> Result<Object, RuntimeError> {
         if let Some((op, next)) = &self.rest {
-            let right = self.factor.evaluate(env)?;
+            let right = self.factor.evaluate(env.clone())?;
             let left = next.evaluate(env)?;
             op.evaluate(left, right)
         } else {
@@ -122,9 +122,9 @@ impl Eval for Term {
 }
 
 impl Eval for Factor {
-    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
+    fn evaluate(&self, env: Rc<RefCell<Env>>) -> Result<Object, RuntimeError> {
         if let Some((op, next)) = &self.rest {
-            let right = self.unary.evaluate(env)?;
+            let right = self.unary.evaluate(env.clone())?;
             let left = next.evaluate(env)?;
             op.evaluate(left, right)
         } else {
@@ -134,7 +134,7 @@ impl Eval for Factor {
 }
 
 impl Eval for Unary {
-    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
+    fn evaluate(&self, env: Rc<RefCell<Env>>) -> Result<Object, RuntimeError> {
         match self {
             Unary::Un(op, unary) => {
                 let un = unary.evaluate(env)?;
@@ -146,24 +146,26 @@ impl Eval for Unary {
 }
 
 impl Eval for Call {
-    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
-        let mut pr = self.prime.evaluate(env)?;
+    fn evaluate(&self, env: Rc<RefCell<Env>>) -> Result<Object, RuntimeError> {
+        let mut pr = self.prime.evaluate(env.clone())?;
         for r in &self.rest {
-            pr = r.evaluate(pr, env)?;
+            pr = r.evaluate(pr, env.clone())?;
         }
         Ok(pr)
     }
 }
 
 impl Calling {
-    fn evaluate(&self, exp: Object, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
+    fn evaluate(&self, exp: Object, env: Rc<RefCell<Env>>) -> Result<Object, RuntimeError> {
         match &self {
             Calling::FuncCall(arguments) => {
                 let func = exp.get_function().ok_or(RuntimeError {
                     err: "Can only call functions and classes.".into(),
                 })?;
-                let args = arguments.as_ref().map_or(Ok(vec![]), |x| x.evaluate(env))?;
-                let res = func.fun.as_ref()(args, &func.params, &func.body, &func.env, env)?;
+                let args = arguments
+                    .as_ref()
+                    .map_or(Ok(vec![]), |x| x.evaluate(env.clone()))?;
+                let res = func.fun.as_ref()(args, &func.params, &func.body, func.env.clone())?;
                 Ok(res)
             }
             Calling::Mthd(_) => todo!(),
@@ -172,17 +174,18 @@ impl Calling {
 }
 
 impl Eval for Primary {
-    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
+    fn evaluate(&self, env: Rc<RefCell<Env>>) -> Result<Object, RuntimeError> {
         match self {
             Primary::ParenExpr(expression) => expression.evaluate(env),
             Primary::Number(n) => Ok(Object::Number(*n)),
             Primary::String(s) => Ok(Object::String(s.clone())),
             Primary::Boolean(b) => Ok(Object::Boolean(*b)),
             Primary::Identifier(id) => {
-                let ev = find_id(id, env).ok_or(RuntimeError {
+                let ev = find_id(id, Some(env)).ok_or(RuntimeError {
                     err: format!("unbound variable {}", id),
                 })?;
-                Ok(ev.0.get(id).unwrap().clone())
+                let val = ev.borrow();
+                Ok(val.values.get(id).unwrap().clone())
             }
             Primary::SuperId(_) => todo!(),
             Primary::This => todo!(),
@@ -192,8 +195,11 @@ impl Eval for Primary {
 }
 
 impl Arguments {
-    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Vec<Object>, RuntimeError> {
-        let mut rest = self.rest.as_ref().map_or(Ok(vec![]), |x| x.evaluate(env))?;
+    fn evaluate(&self, env: Rc<RefCell<Env>>) -> Result<Vec<Object>, RuntimeError> {
+        let mut rest = self
+            .rest
+            .as_ref()
+            .map_or(Ok(vec![]), |x| x.evaluate(env.clone()))?;
         let this = self.expr.evaluate(env)?;
         rest.push(this);
         Ok(rest)

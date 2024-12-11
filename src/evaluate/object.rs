@@ -1,15 +1,13 @@
-use std::fmt::Display;
-use std::sync::Arc;
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 
-use super::environment::Env;
-use super::{Block, RuntimeError};
+use super::*;
 
 #[derive(Clone)]
 pub enum Object {
     Number(f64),
     String(String),
     Boolean(bool),
-    Object(String),
+    // Object(String),
     Function(ExFn),
     Return(Box<Object>),
     Nil,
@@ -18,18 +16,12 @@ pub enum Object {
 #[derive(Clone)]
 pub struct ExFn {
     pub name: String,
+    pub body: Block,
+    pub env: Rc<RefCell<Env>>,
     pub params: Vec<String>,
     pub fun: Arc<
-        dyn Fn(
-            Vec<Object>,
-            &Vec<String>,
-            &Block,
-            &Vec<Env>,
-            &Vec<Env>,
-        ) -> Result<Object, RuntimeError>,
+        dyn Fn(Vec<Object>, &Vec<String>, &Block, Rc<RefCell<Env>>) -> Result<Object, RuntimeError>,
     >,
-    pub body: Block,
-    pub env: Vec<Env>,
 }
 
 impl<'a> Display for Object {
@@ -39,7 +31,7 @@ impl<'a> Display for Object {
             Number(n) => n.to_string(),
             String(s) => s.clone(),
             Boolean(v) => v.to_string(),
-            Object(v) => format!("Object {v}"),
+            // Object(v) => format!("Object {v}"),
             Function(v) => format!("<fn {}>", v.name),
             Return(object) => object.to_string(),
             Nil => "nil".into(),
@@ -72,10 +64,10 @@ impl PartialEq for Object {
                     false
                 }
             }
-            Object::Object(o) => match other {
-                Object::Object(d) => o == d,
-                _ => false,
-            },
+            // Object::Object(o) => match other {
+            //     Object::Object(d) => o == d,
+            //     _ => false,
+            // },
             Object::Nil => match other {
                 Object::Nil => true,
                 _ => false,

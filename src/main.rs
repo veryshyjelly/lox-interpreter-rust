@@ -3,8 +3,6 @@ use std::fs;
 use std::io::{self, Write};
 use std::process::exit;
 use std::sync::Arc;
-use std::time;
-use std::time::UNIX_EPOCH;
 
 use ast::Block;
 use ast::Expression;
@@ -54,21 +52,21 @@ fn main() -> std::io::Result<()> {
         "run" => {
             let scanner = tokenize(file_contents, false)?;
             let parser = parse(&scanner, false)?;
-            let mut env = vec![Env::default()];
+            let env = Env::new_box_it(None);
 
-            env[0].0.insert(
+            env.borrow_mut().values.insert(
                 "clock".into(),
                 Object::Function(ExFn {
                     body: Block(vec![]),
                     name: "clock".into(),
-                    env: vec![],
                     params: vec![],
-                    fun: Arc::new(|_, _, _, _, _| Ok(native_function::clock())),
+                    fun: Arc::new(|_, _, _, _| Ok(native_function::clock())),
+                    env: env.clone(),
                 }),
             );
 
             for d in parser.program.unwrap().declarations {
-                catch_err(d.evaluate(&mut env));
+                catch_err(d.evaluate(env.clone()));
             }
         }
         _ => {
@@ -123,7 +121,7 @@ fn evaluate<'a>(scanner: &'a Scanner) -> std::io::Result<()> {
     let expr = Expression::parse(&scanner.tokens);
     match expr {
         Ok((ex, _)) => {
-            let val = catch_err(ex.evaluate(&mut vec![Env::default()]));
+            let val = catch_err(ex.evaluate(Env::new_box_it(None)));
             write!(io::stdout(), "{val}")
         }
         Err(err) => writeln!(
@@ -140,7 +138,7 @@ fn catch_err(val: Result<Object, RuntimeError>) -> Object {
     match val {
         Ok(v) => v,
         Err(e) => {
-            write!(io::stderr(), "{}", e.err);
+            write!(io::stderr(), "{}", e.err).unwrap();
             exit(70)
         }
     }
