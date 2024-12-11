@@ -1,7 +1,8 @@
 use std::fmt::Display;
 use std::sync::Arc;
 
-use super::RuntimeError;
+use super::environment::Env;
+use super::{Block, RuntimeError};
 
 #[derive(Clone)]
 pub enum Object {
@@ -9,13 +10,20 @@ pub enum Object {
     String(String),
     Boolean(bool),
     Object(String),
-    Function(ExFun),
+    Function(ExFn),
     Nil,
 }
 
-pub type ExFun = Arc<dyn Fn(Vec<Object>) -> Result<Object, RuntimeError> + Send + Sync>;
+#[derive(Clone)]
+pub struct ExFn {
+    pub name: String,
+    pub params: Vec<String>,
+    pub fun: Arc<dyn Fn(Vec<Object>, Vec<String>, Block, Vec<Env>) -> Result<Object, RuntimeError>>,
+    pub body: Block,
+    pub env: Vec<Env>,
+}
 
-impl Display for Object {
+impl<'a> Display for Object {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use self::Object::*;
         let v = match self {
@@ -89,7 +97,7 @@ impl Object {
         }
     }
 
-    pub fn get_function(&self) -> Option<ExFun> {
+    pub fn get_function(&self) -> Option<ExFn> {
         match self {
             Object::Function(v) => Some(v.clone()),
             _ => None,

@@ -1,3 +1,5 @@
+use std::borrow::BorrowMut;
+
 use environment::find_id;
 
 use super::*;
@@ -163,7 +165,7 @@ impl Calling {
                     err: "Expect function".into(),
                 })?;
                 let args = arguments.as_ref().map_or(Ok(vec![]), |x| x.evaluate(env))?;
-                func.as_ref()(args)
+                func.fun.as_ref()(args, func.params, func.body, func.env)
             }
             Calling::Mthd(_) => todo!(),
         }

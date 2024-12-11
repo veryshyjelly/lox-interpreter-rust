@@ -2,10 +2,15 @@ use std::env;
 use std::fs;
 use std::io::{self, Write};
 use std::process::exit;
+use std::sync::Arc;
+use std::time;
+use std::time::UNIX_EPOCH;
 
+use ast::Block;
 use ast::Expression;
 use evaluate::environment::Env;
 use evaluate::Eval;
+use evaluate::ExFn;
 use evaluate::Object;
 use evaluate::RuntimeError;
 use parse::Parser;
@@ -14,6 +19,7 @@ use scan::Scanner;
 mod ast;
 mod display;
 mod evaluate;
+mod native_function;
 mod parse;
 mod scan;
 mod token;
@@ -49,6 +55,18 @@ fn main() -> std::io::Result<()> {
             let scanner = tokenize(file_contents, false)?;
             let parser = parse(&scanner, false)?;
             let mut env = vec![Env::default()];
+
+            env[0].0.insert(
+                "clock".into(),
+                Object::Function(ExFn {
+                    body: Block(vec![]),
+                    name: "clock".into(),
+                    env: vec![],
+                    params: vec![],
+                    fun: Arc::new(|_, _, _, _| Ok(native_function::clock())),
+                }),
+            );
+
             for d in &parser.program.unwrap().declarations {
                 catch_err(d.evaluate(&mut env));
             }

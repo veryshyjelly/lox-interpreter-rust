@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use super::*;
 
 impl Eval for Declaration {
@@ -19,7 +21,7 @@ impl Eval for ClassDecl {
 
 impl Eval for FunDecl {
     fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
-        todo!()
+        self.0.evaluate(env)
     }
 }
 
@@ -40,12 +42,36 @@ impl Eval for VarDecl {
 
 impl Eval for Function {
     fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
-        todo!()
+        let res = |passed: Vec<Object>, params: Vec<String>, body: Block, env: Vec<Env>| {
+            let params = params.clone();
+            let mut env = env.clone();
+            env.push(Env::default());
+            for (name, value) in params.into_iter().zip(passed) {
+                env.last_mut().unwrap().0.insert(name, value);
+            }
+            body.evaluate(&mut env)
+        };
+
+        let params = self
+            .params
+            .as_ref()
+            .map_or(Ok(vec![]), |x| x.evaluate(env))?;
+
+        Ok(Object::Function(ExFn {
+            name: self.name.clone(),
+            fun: Arc::new(res),
+            body: self.body.clone(),
+            params,
+            env: env.clone(),
+        }))
     }
 }
 
-impl Eval for Parameters {
-    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
-        todo!()
+impl Parameters {
+    fn evaluate(&self, env: &mut Vec<Env>) -> Result<Vec<String>, RuntimeError> {
+        let mut res = self.rest.as_ref().map_or(Ok(vec![]), |x| x.evaluate(env))?;
+        let this = self.param.clone();
+        res.push(this);
+        Ok(res)
     }
 }
