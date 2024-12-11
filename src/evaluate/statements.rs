@@ -22,6 +22,8 @@ impl Eval for ExprStmt {
 
 fn get_do_or_not(v: Object) -> bool {
     match v {
+        Object::Number(n) => n != 0.0,
+        Object::String(s) => !s.is_empty(),
         Object::Boolean(b) => b,
         Object::Nil => false,
         _ => true,
@@ -102,6 +104,9 @@ impl Eval for Block {
 
 impl Eval for RtrnStmt {
     fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
-        todo!()
+        Ok(match &self.0 {
+            Some(e) => Object::Return(Box::new(e.evaluate(env)?)),
+            None => Object::Return(Box::new(Object::Nil)),
+        })
     }
 }

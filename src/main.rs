@@ -63,11 +63,11 @@ fn main() -> std::io::Result<()> {
                     name: "clock".into(),
                     env: vec![],
                     params: vec![],
-                    fun: Arc::new(|_, _, _, _| Ok(native_function::clock())),
+                    fun: Arc::new(|_, _, _, _, _| Ok(native_function::clock())),
                 }),
             );
 
-            for d in &parser.program.unwrap().declarations {
+            for d in parser.program.unwrap().declarations {
                 catch_err(d.evaluate(&mut env));
             }
         }

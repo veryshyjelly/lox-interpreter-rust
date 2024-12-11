@@ -11,6 +11,7 @@ pub enum Object {
     Boolean(bool),
     Object(String),
     Function(ExFn),
+    Return(Box<Object>),
     Nil,
 }
 
@@ -18,7 +19,15 @@ pub enum Object {
 pub struct ExFn {
     pub name: String,
     pub params: Vec<String>,
-    pub fun: Arc<dyn Fn(Vec<Object>, Vec<String>, Block, Vec<Env>) -> Result<Object, RuntimeError>>,
+    pub fun: Arc<
+        dyn Fn(
+            Vec<Object>,
+            &Vec<String>,
+            &Block,
+            &Vec<Env>,
+            &Vec<Env>,
+        ) -> Result<Object, RuntimeError>,
+    >,
     pub body: Block,
     pub env: Vec<Env>,
 }
@@ -32,6 +41,7 @@ impl<'a> Display for Object {
             Boolean(v) => v.to_string(),
             Object(v) => format!("Object {v}"),
             Function(v) => format!("<fn {}>", v.name),
+            Return(object) => object.to_string(),
             Nil => "nil".into(),
         };
         write!(f, "{v}")
@@ -71,6 +81,7 @@ impl PartialEq for Object {
                 _ => false,
             },
             Object::Function(_) => false,
+            Object::Return(_) => false,
         }
     }
 }
@@ -97,9 +108,9 @@ impl Object {
         }
     }
 
-    pub fn get_function(&self) -> Option<ExFn> {
+    pub fn get_function(&self) -> Option<&ExFn> {
         match self {
-            Object::Function(v) => Some(v.clone()),
+            Object::Function(v) => Some(v),
             _ => None,
         }
     }

@@ -163,7 +163,8 @@ impl Calling {
                     err: "Expect function".into(),
                 })?;
                 let args = arguments.as_ref().map_or(Ok(vec![]), |x| x.evaluate(env))?;
-                func.fun.as_ref()(args, func.params, func.body, func.env)
+                let res = func.fun.as_ref()(args, &func.params, &func.body, &func.env, env)?;
+                Ok(res)
             }
             Calling::Mthd(_) => todo!(),
         }

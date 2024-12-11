@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{ops::Deref, sync::Arc};
 
 use super::*;
 
@@ -22,7 +22,7 @@ impl Eval for ClassDecl {
 impl Eval for FunDecl {
     fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
         let func = self.0.evaluate(env)?;
-        let name = func.get_function().unwrap().name;
+        let name = func.get_function().unwrap().name.clone();
         env.last_mut().unwrap().0.insert(name, func);
         Ok(Object::Nil)
     }
@@ -45,14 +45,30 @@ impl Eval for VarDecl {
 
 impl Eval for Function {
     fn evaluate(&self, env: &mut Vec<Env>) -> Result<Object, RuntimeError> {
-        let res = |passed: Vec<Object>, params: Vec<String>, body: Block, env: Vec<Env>| {
+        let res = |passed: Vec<Object>,
+                   params: &Vec<String>,
+                   body: &Block,
+                   env1: &Vec<Env>,
+                   env_global: &Vec<Env>| {
             let params = params.clone();
-            let mut env = env.clone();
+            let mut env = env_global.clone();
+
+            env.extend_from_slice(&env1);
             env.push(Env::default());
+
             for (name, value) in params.into_iter().zip(passed) {
                 env.last_mut().unwrap().0.insert(name, value);
             }
-            body.evaluate(&mut env)
+
+            for expr in &body.0 {
+                let val = expr.evaluate(&mut env)?;
+                match val {
+                    Object::Return(v) => return Ok(v.deref().clone()),
+                    _ => {}
+                }
+            }
+
+            Ok(Object::Nil)
         };
 
         let params = self
