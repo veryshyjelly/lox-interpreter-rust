@@ -3,6 +3,7 @@ use std::fs;
 use std::io::{self, Write};
 use std::process::exit;
 
+use ast::Expression;
 use evaluate::environment::Env;
 use evaluate::Eval;
 use parse::Parser;
@@ -40,6 +41,10 @@ fn main() -> std::io::Result<()> {
         }
         "evaluate" => {
             let scanner = tokenize(file_contents, false)?;
+            evaluate(&scanner)?;
+        }
+        "run" => {
+            let scanner = tokenize(file_contents, false)?;
             let parser = parse(&scanner, false)?;
             let mut env = Env::default();
             for d in &parser.program.unwrap().declarations {
@@ -74,18 +79,43 @@ fn tokenize(file_contents: String, debug: bool) -> std::io::Result<Scanner> {
 fn parse<'a>(scanner: &'a Scanner, debug: bool) -> std::io::Result<Parser> {
     let mut parser = Parser::new(&scanner.tokens);
     if let Err(err) = parser.parse() {
-        writeln!(
+        match Expression::parse(&scanner.tokens) {
+            Ok((e, _)) => write!(io::stdout(), "{e}")?,
+            Err(_) => {
+                writeln!(
+                    io::stderr(),
+                    "[line {}] Error at '{}': {}",
+                    err.tok.line,
+                    err.tok.lexeme,
+                    err.err
+                )?;
+                exit(65);
+            }
+        }
+    } else if debug {
+        if let Some(expr) = &parser.program {
+            write!(io::stdout(), "{}", expr)?;
+        }
+    }
+    Ok(parser)
+}
+
+fn evaluate<'a>(scanner: &'a Scanner) -> std::io::Result<()> {
+    let expr = Expression::parse(&scanner.tokens);
+    match expr {
+        Ok((ex, _)) => match ex.evaluate(Env::default()) {
+            Ok((res, _)) => write!(io::stdout(), "{}", res),
+            Err(e) => {
+                write!(io::stderr(), "{}", e.err)?;
+                exit(70)
+            }
+        },
+        Err(err) => writeln!(
             io::stderr(),
             "[line {}] Error at '{}': {}",
             err.tok.line,
             err.tok.lexeme,
             err.err
-        )?;
-        exit(65);
-    } else if debug {
-        if let Some(expr) = &parser.program {
-            println!("{}", expr);
-        }
+        ),
     }
-    Ok(parser)
 }

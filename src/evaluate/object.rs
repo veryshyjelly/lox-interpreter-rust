@@ -1,4 +1,7 @@
-use std::fmt::Display;
+use std::sync::Arc;
+use std::{collections::HashMap, fmt::Display};
+
+use super::{Arguments, RuntimeError};
 
 #[derive(Clone)]
 pub enum Object {
@@ -6,8 +9,11 @@ pub enum Object {
     String(String),
     Boolean(bool),
     Object(String),
+    Function(ExFun),
     Nil,
 }
+
+pub type ExFun = Arc<dyn Fn(Vec<Object>) -> Result<Object, RuntimeError> + Send + Sync>;
 
 impl Display for Object {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -17,6 +23,7 @@ impl Display for Object {
             String(s) => s.clone(),
             Boolean(v) => v.to_string(),
             Object(v) => format!("Object {v}"),
+            Function(v) => format!("function"),
             Nil => "nil".into(),
         };
         write!(f, "{v}")
@@ -55,6 +62,7 @@ impl PartialEq for Object {
                 Object::Nil => true,
                 _ => false,
             },
+            Object::Function(f) => false,
         }
     }
 }
@@ -77,6 +85,13 @@ impl Object {
     pub fn get_bool(&self) -> Option<bool> {
         match self {
             Object::Boolean(v) => Some(*v),
+            _ => None,
+        }
+    }
+
+    pub fn get_function(&self) -> Option<ExFun> {
+        match self {
+            Object::Function(v) => Some(v.clone()),
             _ => None,
         }
     }

@@ -16,17 +16,39 @@ impl Eval for Statement {
 
 impl Eval for ExprStmt {
     fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
-        todo!()
+        self.0.evaluate(env)
     }
 }
 
 impl Eval for IfStmt {
     fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
-        todo!()
+        if self
+            .pred
+            .evaluate(env.clone())?
+            .0
+            .get_bool()
+            .ok_or(RuntimeError {
+                err: "expected bool".into(),
+            })?
+        {
+            self.if_stmt.evaluate(env)
+        } else if let Some(el) = &self.else_stmt {
+            el.evaluate(env)
+        } else {
+            Ok((Object::Nil, env))
+        }
     }
 }
 
 impl Eval for ForStmt {
+    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+        let (res, env) = self.first_dec.evaluate(env)?;
+
+        Ok((res, env))
+    }
+}
+
+impl Eval for ForDec {
     fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
         todo!()
     }
@@ -40,7 +62,9 @@ impl Eval for WhileStmt {
 
 impl Eval for PrntStmt {
     fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
-        todo!()
+        let (val, env) = self.0.evaluate(env)?;
+        println!("{val}");
+        Ok((val, env))
     }
 }
 

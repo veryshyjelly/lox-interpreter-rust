@@ -2,7 +2,81 @@ use super::*;
 
 impl Eval for Expression {
     fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
-        todo!()
+        self.0.evaluate(env)
+    }
+}
+
+impl Eval for Assignment {
+    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+        match self {
+            Assignment::Assign(call, assignment) => match &call.prime {
+                Primary::Identifier(id) => {
+                    let (res, mut env) = assignment.evaluate(env)?;
+                    env.0.insert(id.clone(), res.clone());
+                    Ok((res, env))
+                }
+                _ => Err(RuntimeError {
+                    err: "Expect identifier".into(),
+                }),
+            },
+            Assignment::LogicOr(logic_or) => logic_or.evaluate(env),
+        }
+    }
+}
+
+impl Eval for LogicOr {
+    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+        let (right, env) = self.and.evaluate(env)?;
+        if let Some(rest) = &self.rest {
+            let (left, env) = rest.evaluate(env)?;
+            Ok((Self::or(left, right), env))
+        } else {
+            Ok((right, env))
+        }
+    }
+}
+
+impl LogicOr {
+    fn or(left: Object, right: Object) -> Object {
+        match left {
+            Object::Boolean(b) => {
+                if b {
+                    left
+                } else {
+                    right
+                }
+            }
+            Object::Nil => right,
+            _ => left,
+        }
+    }
+}
+
+impl Eval for LogicAnd {
+    fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
+        let (right, env) = self.eq.evaluate(env)?;
+        if let Some(rest) = &self.rest {
+            let (left, env) = rest.evaluate(env)?;
+            Ok((Self::and(left, right), env))
+        } else {
+            Ok((right, env))
+        }
+    }
+}
+
+impl LogicAnd {
+    fn and(left: Object, right: Object) -> Object {
+        match left {
+            Object::Boolean(b) => {
+                if b {
+                    right
+                } else {
+                    left
+                }
+            }
+            Object::Nil => left,
+            _ => right,
+        }
     }
 }
 
@@ -72,8 +146,26 @@ impl Eval for Unary {
 
 impl Eval for Call {
     fn evaluate(&self, env: Env) -> Result<(Object, Env), RuntimeError> {
-        let (pr, env) = self.prime.evaluate(env)?;
-        todo!()
+        let (mut pr, env) = self.prime.evaluate(env)?;
+        for r in &self.rest {
+            pr = r.evaluate(pr, &env)?;
+        }
+        Ok((pr, env))
+    }
+}
+
+impl Calling {
+    fn evaluate(&self, exp: Object, env: &Env) -> Result<Object, RuntimeError> {
+        match &self {
+            Calling::FuncCall(arguments) => {
+                let func = exp.get_function().ok_or(RuntimeError {
+                    err: "Expect function".into(),
+                })?;
+                let args = arguments.as_ref().map_or(Ok(vec![]), |x| x.evaluate(env))?;
+                func.as_ref()(args)
+            }
+            Calling::Mthd(_) => todo!(),
+        }
     }
 }
 
@@ -90,9 +182,18 @@ impl Eval for Primary {
                 })?;
                 Ok((val.clone(), env))
             }
-            Primary::SuperId(id) => todo!(),
+            Primary::SuperId(_) => todo!(),
             Primary::This => todo!(),
             Primary::Nil => Ok((Object::Nil, env)),
         }
+    }
+}
+
+impl Arguments {
+    fn evaluate(&self, env: &Env) -> Result<Vec<Object>, RuntimeError> {
+        let mut rest = self.rest.as_ref().map_or(Ok(vec![]), |x| x.evaluate(env))?;
+        let (this, _) = self.expr.evaluate(env.clone())?;
+        rest.push(this);
+        Ok(rest)
     }
 }

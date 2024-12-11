@@ -158,7 +158,7 @@ impl Display for Primary {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let v = match self {
             Primary::Number(n) => format_float(n),
-            Primary::String(s) => format!("\"{s}\""),
+            Primary::String(s) => format!("{s}"),
             Primary::Boolean(v) => v.to_string(),
             Primary::Nil => "nil".into(),
             Primary::ParenExpr(expression) => format!("(group {expression})"),

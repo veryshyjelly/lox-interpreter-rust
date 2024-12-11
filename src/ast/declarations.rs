@@ -19,6 +19,7 @@ pub struct VarDecl {
     pub name: String,
     pub expr: Option<Expression>,
 }
+
 pub struct Function {
     pub name: String,
     pub params: Option<Parameters>,
